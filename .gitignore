@@ -1,0 +1,8 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/BrainBuzz.web/.vs/BrainBuzz.web
+/BrainBuzz.web/bin/Debug/net8.0
+/BrainBuzz.web/obj

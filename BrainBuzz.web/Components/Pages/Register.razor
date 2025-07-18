@@ -2,6 +2,7 @@
 @layout BlankLayout
 @using System.ComponentModel.DataAnnotations
 @using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Models.Request
 
 <div class="auth-container">
      <div class="auth-card">
@@ -17,55 +18,51 @@
                </p>
           </div>
 
-          <EditForm Model="@registerModel" OnValidSubmit="@HandleRegister">
+          <EditForm FormName="registerForm" Model="@registerRequest" OnValidSubmit="@PerformRegister">
                <DataAnnotationsValidator />
-
+               <div class="form-group">
+                    <label for="username">User Name</label>
+                    <InputText @bind-Value="registerRequest.Username" id="username"
+                               class="form-input" placeholder="John" />
+                    <ValidationMessage For="@(() => registerRequest.Username)" />
+               </div>
                <div class="form-row">
+
                     <div class="form-group">
                          <label for="firstName">First Name</label>
-                         <InputText @bind-Value="registerModel.FirstName" id="firstName"
+                         <InputText @bind-Value="registerRequest.FirstName" id="firstName"
                                     class="form-input" placeholder="John" />
-                         <ValidationMessage For="@(() => registerModel.FirstName)" />
+                         <ValidationMessage For="@(() => registerRequest.FirstName)" />
                     </div>
 
                     <div class="form-group">
                          <label for="lastName">Last Name</label>
-                         <InputText @bind-Value="registerModel.LastName" id="lastName"
+                         <InputText @bind-Value="registerRequest.LastName" id="lastName"
                                     class="form-input" placeholder="Doe" />
-                         <ValidationMessage For="@(() => registerModel.LastName)" />
+                         <ValidationMessage For="@(() => registerRequest.LastName)" />
                     </div>
                </div>
 
                <div class="form-group">
                     <label for="email">Email Address</label>
-                    <InputText @bind-Value="registerModel.Email" id="email" type="email"
+                    <InputText @bind-Value="registerRequest.Email" id="email" type="email"
                                class="form-input" placeholder="john@example.com" />
-                    <ValidationMessage For="@(() => registerModel.Email)" />
+                    <ValidationMessage For="@(() => registerRequest.Email)" />
                </div>
 
                <div class="form-group">
                     <label for="password">Password</label>
-                    <InputText @bind-Value="registerModel.Password" id="password" type="password"
+                    <InputText @bind-Value="registerRequest.Password" id="password" type="password"
                                class="form-input" placeholder="Create a strong password" />
-                    <ValidationMessage For="@(() => registerModel.Password)" />
+                    <ValidationMessage For="@(() => registerRequest.Password)" />
                </div>
 
                <div class="form-group">
                     <label for="confirmPassword">Confirm Password</label>
-                    <InputText @bind-Value="registerModel.ConfirmPassword" id="confirmPassword" type="password"
+                    <InputText @bind-Value="registerRequest.ConfirmPassword" id="confirmPassword" type="password"
                                class="form-input" placeholder="Confirm your password" />
-                    <ValidationMessage For="@(() => registerModel.ConfirmPassword)" />
+                    <ValidationMessage For="@(() => registerRequest.ConfirmPassword)" />
                </div>
-
-               <div class="checkbox-group">
-                    <InputCheckbox @bind-Value="registerModel.AcceptTerms" id="acceptTerms" class="checkbox-input" />
-                    <label for="acceptTerms" class="checkbox-label">
-                         I agree to the <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>
-                    </label>
-               </div>
-               <ValidationMessage For="@(() => registerModel.AcceptTerms)" />
-
-               <ValidationSummary class="validation-summary" />
 
                <button type="submit" disabled="@isLoading" class="btn btn-secondary">
                     @if (isLoading)
@@ -79,56 +76,16 @@
 </div>
 
 @code {
-     private RegisterModel registerModel = new();
+     private RegisterRequest registerRequest = new();
      private bool isLoading = false;
 
-     public class RegisterModel
-     {
-          [Required(ErrorMessage = "First name is required")]
-          [StringLength(50, MinimumLength = 2, ErrorMessage = "First name must be between 2 and 50 characters")]
-          public string FirstName { get; set; } = "";
-
-          [Required(ErrorMessage = "Last name is required")]
-          [StringLength(50, MinimumLength = 2, ErrorMessage = "Last name must be between 2 and 50 characters")]
-          public string LastName { get; set; } = "";
-
-          [Required(ErrorMessage = "Email is required")]
-          [EmailAddress(ErrorMessage = "Please enter a valid email address")]
-          public string Email { get; set; } = "";
-
-          [Required(ErrorMessage = "Password is required")]
-          [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long")]
-          [DataType(DataType.Password)]
-          public string Password { get; set; } = "";
-
-          [Required(ErrorMessage = "Please confirm your password")]
-          [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
-          [DataType(DataType.Password)]
-          public string ConfirmPassword { get; set; } = "";
-
-          [Required(ErrorMessage = "You must accept the terms and conditions")]
-          [Range(typeof(bool), "true", "true", ErrorMessage = "You must accept the terms and conditions")]
-          public bool AcceptTerms { get; set; }
-
-
-     }
-
-
-     private async Task HandleRegister()
+     private async Task PerformRegister()
      {
           isLoading = true;
           try
           {
-               // Simulate API call
                await Task.Delay(2000);
-
-               // Add your registration logic here
-               // Example: await AuthService.RegisterAsync(registerModel);
-
-               Console.WriteLine($"Registration attempt: {registerModel.Email}");
-
-               // Redirect on success
-               // NavigationManager.NavigateTo("/login");
+               Console.WriteLine($"Registration attempt: {registerRequest.Email}");
           }
           catch (Exception ex)
           {

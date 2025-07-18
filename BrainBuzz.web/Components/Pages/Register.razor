@@ -1,5 +1,7 @@
 ﻿@page "/register"
 @layout BlankLayout
+@rendermode InteractiveServer
+
 @using System.ComponentModel.DataAnnotations
 @using BrainBuzz.web.Components.Layout
 @using BrainBuzz.web.Models.Request
@@ -18,7 +20,7 @@
                </p>
           </div>
 
-          <EditForm FormName="registerForm" Model="@registerRequest" OnValidSubmit="@PerformRegister">
+          <EditForm Model="@registerRequest" OnValidSubmit="@PerformRegister">
                <DataAnnotationsValidator />
                <div class="form-group">
                     <label for="username">User Name</label>
@@ -79,7 +81,7 @@
      private RegisterRequest registerRequest = new();
      private bool isLoading = false;
 
-     private async Task PerformRegister()
+     public async Task PerformRegister()
      {
           isLoading = true;
           try

@@ -1,10 +1,17 @@
 using BrainBuzz.web.Components;
+using BrainBuzz.web.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.SqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
 

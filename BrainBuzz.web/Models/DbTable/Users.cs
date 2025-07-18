@@ -7,7 +7,6 @@ namespace BrainBuzz.web.Models.DbTable
         [Key]
         public int UserId { get; set; }
         public string Username { get; set; } = default!;
-        public string Password { get; set; } = default!;
         public string PasswordHash { get; set; } = default!;
         public string Role { get; set; } = default!;
         public string FirstName { get; set; } = default!;

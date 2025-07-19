@@ -5,5 +5,6 @@ namespace BrainBuzz.web.Services.Interface
      public interface IUserService
      {
           Task AddUser(RegisterRequest registerRequest);
+          Task<bool> LoginUser(LoginRequest loginRequest);
      }
 }

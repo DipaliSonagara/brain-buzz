@@ -2,6 +2,7 @@
 using BrainBuzz.web.Models.DbTable;
 using BrainBuzz.web.Models.Request;
 using BrainBuzz.web.Services.Interface;
+using Microsoft.EntityFrameworkCore;
 
 namespace BrainBuzz.web.Services
 {
@@ -26,6 +27,16 @@ namespace BrainBuzz.web.Services
                };
                await applicationDb.Users.AddAsync(user);
                await applicationDb.SaveChangesAsync();
+          }
+
+          public async Task<bool> LoginUser(LoginRequest loginRequest)
+          {
+               var user = await applicationDb.Users.FirstOrDefaultAsync(x => x.Username == loginRequest.Username && x.PasswordHash == loginRequest.Password);
+               if (user == null)
+                    return false;
+               else
+                    return true;
+
           }
      }
 }

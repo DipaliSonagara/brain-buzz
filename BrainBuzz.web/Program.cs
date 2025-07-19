@@ -1,5 +1,7 @@
 using BrainBuzz.web.Components;
 using BrainBuzz.web.Data;
+using BrainBuzz.web.Services;
+using BrainBuzz.web.Services.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.SqlServer;
 
@@ -12,7 +14,7 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+builder.Services.AddScoped<IUserService, UserService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

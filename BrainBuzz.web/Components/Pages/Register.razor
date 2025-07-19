@@ -2,9 +2,12 @@
 @layout BlankLayout
 @rendermode InteractiveServer
 
+@inject IUserService userService
+
 @using System.ComponentModel.DataAnnotations
 @using BrainBuzz.web.Components.Layout
 @using BrainBuzz.web.Models.Request
+@using BrainBuzz.web.Services.Interface
 
 <div class="auth-container">
      <div class="auth-card">
@@ -86,7 +89,7 @@
           isLoading = true;
           try
           {
-               await Task.Delay(2000);
+               await userService.AddUser(registerRequest);
                Console.WriteLine($"Registration attempt: {registerRequest.Email}");
           }
           catch (Exception ex)

@@ -15,10 +15,11 @@
           <div class="auth-header">
                <div class="auth-icon">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                         <img src="" />
+                         @* <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path> *@
                     </svg>
                </div>
-               <h1 class="auth-title">Welcome Back</h1>
+               <h1 class="auth-title">BrainBuzz</h1>
                <p class="auth-subtitle">
                     Don't have an account? <a href="/register">Sign up here</a>
                </p>
@@ -48,10 +49,9 @@
                     </div>
                     <a href="/forgot-password" class="forgot-link">Forgot password?</a>
                </div>
- *@
-               <ValidationSummary class="validation-summary" />
-
-               <button type="submit" disabled="@isLoading" class="btn btn-primary">
+*@
+          <span class=" m-2">@loginError</span>
+               <button type="submit" disabled="@isLoading" class="btn btn-primary mt-2" >
                     @if (isLoading)
                     {
                          <div class="spinner"></div>
@@ -63,10 +63,12 @@
 </div>
 
 @code {
-    public LoginRequest loginRequest= new();
-    private bool isLoading = false;
+     public LoginRequest loginRequest= new();
+     private bool isLoading = false;
 
-    
+     private string? loginError;
+
+
 
      public async Task LoginProcess()
      {
@@ -81,7 +83,8 @@
                }
                else
                {
-                    Console.WriteLine("Invalid username or password.");
+                    loginError = "Invalid username or password.";
+                    StateHasChanged();
                }
           }
           catch (Exception ex)

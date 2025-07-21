@@ -1,6 +1,7 @@
 ﻿@page "/"
 @layout BlankLayout
 @inject IUserService UserService
+@inject NavigationManager Navigation
 @rendermode InteractiveServer
 @using System.ComponentModel.DataAnnotations
 @using BrainBuzz.web.Components.Layout
@@ -11,38 +12,38 @@
 
 
 <div class="auth-container">
-     <div class="auth-card">
-          <div class="auth-header">
-               <div class="auth-icon">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                         <img src="" />
-                         @* <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path> *@
-                    </svg>
-               </div>
-               <h1 class="auth-title">BrainBuzz</h1>
-               <p class="auth-subtitle">
-                    Don't have an account? <a href="/register">Sign up here</a>
-               </p>
-          </div>
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <img src="/logo/brain-buzz-logo.png" alt="BrainBuzz Logo" class="auth-logo" />
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    @* <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path> *@
+                </svg>
+            </div>
+            <h1 class="auth-title">BrainBuzz</h1>
+            <p class="auth-subtitle">
+                Don't have an account? <a href="/register">Sign up here</a>
+            </p>
+        </div>
 
-          <EditForm Model="@loginRequest" OnValidSubmit="@LoginProcess">
-               <DataAnnotationsValidator />
+        <EditForm Model="@loginRequest" OnValidSubmit="@LoginProcess">
+            <DataAnnotationsValidator />
 
-               <div class="form-group">
-                    <label for="username">Username</label>
-                    <InputText @bind-Value="loginRequest.Username" id="username" type="username"
-                               class="form-input" placeholder="Enter your username" />
-                    <ValidationMessage For="@(() => loginRequest.Username)" />
-               </div>
+            <div class="form-group">
+                <label for="username">Username</label>
+                <InputText @bind-Value="loginRequest.Username" id="username" type="username"
+                           class="form-input" placeholder="Enter your username" />
+                <ValidationMessage For="@(() => loginRequest.Username)" />
+            </div>
 
-               <div class="form-group">
-                    <label for="password">Password</label>
-                    <InputText @bind-Value="loginRequest.Password" id="password" type="password"
-                               class="form-input" placeholder="Enter your password" />
-                    <ValidationMessage For="@(() => loginRequest.Password)" />
-               </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <InputText @bind-Value="loginRequest.Password" id="password" type="password"
+                           class="form-input" placeholder="Enter your password" />
+                <ValidationMessage For="@(() => loginRequest.Password)" />
+            </div>
 
-              @*  <div class="form-actions">
+            @*  <div class="form-actions">
                     <div class="checkbox-group">
                          <InputCheckbox @bind-Value="loginRequest.RememberMe" id="remember-me" class="checkbox-input" />
                          <label for="remember-me" class="checkbox-label">Remember me</label>
@@ -50,52 +51,53 @@
                     <a href="/forgot-password" class="forgot-link">Forgot password?</a>
                </div>
 *@
-          <span class=" m-2">@loginError</span>
-               <button type="submit" disabled="@isLoading" class="btn btn-primary mt-2" >
-                    @if (isLoading)
-                    {
-                         <div class="spinner"></div>
-                    }
-                    Sign In
-               </button>
-          </EditForm>
-     </div>
+            <span class=" m-2">@loginMessage</span>
+            <button type="submit" disabled="@isLoading" class="btn btn-primary mt-2">
+                @if (isLoading)
+                {
+                    <div class="spinner"></div>
+                }
+                Sign In
+            </button>
+        </EditForm>
+    </div>
 </div>
 
 @code {
-     public LoginRequest loginRequest= new();
-     private bool isLoading = false;
+    public LoginRequest loginRequest = new();
+    private bool isLoading = false;
 
-     private string? loginError;
+    private string? loginMessage;
 
 
 
-     public async Task LoginProcess()
-     {
-          isLoading = true;
-          try
-          {
-               Console.WriteLine($"Login attempt: {loginRequest.Username}");
-               bool isSuccess = await UserService.LoginUser(loginRequest);
-               if (isSuccess)
-               {
-                    Console.WriteLine("Login successful!");
-               }
-               else
-               {
-                    loginError = "Invalid username or password.";
-                    StateHasChanged();
-               }
-          }
-          catch (Exception ex)
-          {
-               Console.WriteLine($"Login error: {ex.Message}");
-          }
-          finally
-          {
-               isLoading = false;
-          }
-     }
+    public async Task LoginProcess()
+    {
+        isLoading = true;
+        try
+        {
+            Console.WriteLine($"Login attempt: {loginRequest.Username}");
+            bool isSuccess = await UserService.LoginUser(loginRequest);
+            if (isSuccess)
+            {
+                Navigation.NavigateTo("/home");
+            }
+            else
+            {
+                loginMessage = "Invalid username or password.";
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Login error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
 
 }
 

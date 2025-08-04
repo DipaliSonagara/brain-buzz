@@ -3,7 +3,6 @@ using BrainBuzz.web.Data;
 using BrainBuzz.web.Services;
 using BrainBuzz.web.Services.Interface;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.SqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
 

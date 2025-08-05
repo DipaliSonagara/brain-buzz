@@ -21,7 +21,7 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link @(selectedSection == "quizzes" ? "active" : "")" href="#" @onclick="SetQuizzesSection">
-                                    <i class="fas fa-question-circle"></i> My Quizzes
+                                    <i class="fas fa-question-circle"></i> Quizzes
                                 </a>
                             </li>
                             <li class="nav-item">
@@ -64,7 +64,7 @@
                                         <div class="stat-card-body">
                                             <div class="stat-card-content">
                                                 <h5>Total Quizzes</h5>
-                                                <h2>15</h2>
+                                                <h2>0</h2>
                                             </div>
                                             <i class="fas fa-question-circle stat-card-icon"></i>
                                         </div>
@@ -75,7 +75,7 @@
                                         <div class="stat-card-body">
                                             <div class="stat-card-content">
                                                 <h5>Completed</h5>
-                                                <h2>12</h2>
+                                                <h2>0</h2>
                                             </div>
                                             <i class="fas fa-check-circle stat-card-icon"></i>
                                         </div>
@@ -86,7 +86,7 @@
                                         <div class="stat-card-body">
                                             <div class="stat-card-content">
                                                 <h5>Average Score</h5>
-                                                <h2>85%</h2>
+                                                <h2>0</h2>
                                             </div>
                                             <i class="fas fa-chart-line stat-card-icon"></i>
                                         </div>
@@ -97,7 +97,7 @@
                                         <div class="stat-card-body">
                                             <div class="stat-card-content">
                                                 <h5>Best Score</h5>
-                                                <h2>98%</h2>
+                                                <h2>0</h2>
                                             </div>
                                             <i class="fas fa-trophy stat-card-icon"></i>
                                         </div>
@@ -115,17 +115,17 @@
                                             <div class="list-group-dashboard">
                                                 <div class="list-group-item-dashboard">
                                                     <div class="d-flex w-100 justify-content-between">
-                                                        <h6>Science Quiz #3</h6>
-                                                        <small>2 hours ago</small>
+                                                        <h6></h6>
+                                                        <small></small>
                                                     </div>
-                                                    <p>Scored 92% - Great job!</p>
+                                                    <p></p>
                                                 </div>
                                                 <div class="list-group-item-dashboard">
                                                     <div class="d-flex w-100 justify-content-between">
-                                                        <h6>History Quiz #1</h6>
-                                                        <small>1 day ago</small>
+                                                        <h6></h6>
+                                                        <small></small>
                                                     </div>
-                                                    <p>Scored 76% - Room for improvement</p>
+                                                    <p></p>
                                                 </div>
                                             </div>
                                         </div>
@@ -148,8 +148,92 @@
                                         <div class="col-md-4 mb-3">
                                             <div class="quiz-card">
                                                 <div class="quiz-card-body">
-                                                    <h5 class="quiz-card-title">Science Quiz</h5>
-                                                    <p class="quiz-card-text">Test your knowledge of basic science concepts.</p>
+                                                    <h5 class="quiz-card-title">HTML-CSS</h5>
+                                                    <p class="quiz-card-text">Test your knowledge of building and styling web pages with HTML & CSS!</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 15 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">JAVASCRIPT</h5>
+                                                    <p class="quiz-card-text">Quiz yourself on core JavaScript and web interactivity concepts.</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 15 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">SQL</h5>
+                                                    <p class="quiz-card-text">Test your database knowledge with SQL queries and concepts.</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 15 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">PYTHON</h5>
+                                                    <p class="quiz-card-text">Check your Python programming skills — logic, syntax, and more!</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 15 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">JAVA</h5>
+                                                    <p class="quiz-card-text">Assess your Java programming knowledge from basics to OOP.</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 15 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">PHP</h5>
+                                                    <p class="quiz-card-text">Test how well you know server-side scripting with PHP.</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 15 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">C</h5>
+                                                    <p class="quiz-card-text">Challenge your understanding of foundational C programming concepts.</p>
                                                     <p class="quiz-card-meta">
                                                         <i class="fas fa-question-circle"></i> 10 Questions •
                                                         <i class="fas fa-clock"></i> 15 minutes
@@ -161,11 +245,25 @@
                                         <div class="col-md-4 mb-3">
                                             <div class="quiz-card">
                                                 <div class="quiz-card-body">
-                                                    <h5 class="quiz-card-title">History Quiz</h5>
-                                                    <p class="quiz-card-text">Challenge yourself with historical facts.</p>
+                                                    <h5 class="quiz-card-title">C++</h5>
+                                                    <p class="quiz-card-text">Put your object-oriented and C++ skills to the test!</p>
                                                     <p class="quiz-card-meta">
                                                         <i class="fas fa-question-circle"></i> 15 Questions •
                                                         <i class="fas fa-clock"></i> 20 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">C#</h5>
+                                                    <p class="quiz-card-text">Evaluate your grasp of C# and .NET fundamentals.</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 15 minutes
                                                     </p>
                                                     <button class="btn-dashboard primary">Start Quiz</button>
                                                 </div>

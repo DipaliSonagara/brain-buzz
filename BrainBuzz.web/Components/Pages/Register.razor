@@ -18,18 +18,13 @@
                </div>
                <h1 class="auth-title">Create Account</h1>
                <p class="auth-subtitle">
-                    Already have an account? <a href="/">Sign in here</a>
+                    Already have an account? <a href="/login">Sign in here</a>
                </p>
           </div>
 
           <EditForm Model="@registerRequest" OnValidSubmit="@PerformRegister">
                <DataAnnotationsValidator />
-               <div class="form-group">
-                    <label for="username">User Name</label>
-                    <InputText @bind-Value="registerRequest.Username" id="username"
-                               class="form-input" placeholder="John" />
-                    <ValidationMessage For="@(() => registerRequest.Username)" />
-               </div>
+               
                <div class="form-row">
 
                     <div class="form-group">

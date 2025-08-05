@@ -20,8 +20,8 @@ namespace BrainBuzz.web.Services
                Users user = new Users()
                {
                  Email = registerRequest.Email,
-                 FirstName = registerRequest.FirstName,
-                 LastName = registerRequest.LastName,
+                 //FirstName = registerRequest.FirstName,
+                 //LastName = registerRequest.LastName,
                  PasswordHash = registerRequest.Password,
                  Username = registerRequest.Username,
                };

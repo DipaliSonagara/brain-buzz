@@ -12,7 +12,7 @@ namespace BrainBuzz.web.Models.Request
           public string ConfirmPassword { get; set; } = string.Empty;
           public string? PasswordHash { get; set; }
           public string? Role { get; set; }
-          [Required]
+          //[Required]
           //public string FirstName { get; set; } = string.Empty;
           //[Required]
           //public string LastName { get; set; } = string.Empty;

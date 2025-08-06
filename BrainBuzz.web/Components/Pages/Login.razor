@@ -77,7 +77,7 @@
             bool isSuccess = await UserService.LoginUser(loginRequest);
             if (isSuccess)
             {
-                Navigation.NavigateTo("/home");
+                Navigation.NavigateTo("/dashboard");
             }
             else
             {

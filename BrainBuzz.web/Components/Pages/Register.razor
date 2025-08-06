@@ -1,9 +1,8 @@
 ﻿@page "/register"
 @layout BlankLayout
 @rendermode InteractiveServer
-
+@inject NavigationManager Navigation
 @inject IUserService userService
-
 @using System.ComponentModel.DataAnnotations
 @using BrainBuzz.web.Components.Layout
 @using BrainBuzz.web.Models.Request
@@ -92,6 +91,8 @@
           {
                await userService.AddUser(registerRequest);
                Console.WriteLine($"Registration attempt: {registerRequest.Email}");
+
+                   Navigation.NavigateTo("/dashboard");
           }
           catch (Exception ex)
           {

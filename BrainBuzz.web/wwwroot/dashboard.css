@@ -529,3 +529,14 @@
         opacity: 1;
     }
 }
+
+.brand-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+    .brand-link:hover {
+        text-decoration: none;
+        color: inherit;
+    }

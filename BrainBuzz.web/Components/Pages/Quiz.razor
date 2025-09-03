@@ -1,0 +1,41 @@
+﻿@page "/Quizzes"
+@using BrainBuzz.web.Data
+@using Microsoft.EntityFrameworkCore
+@using BrainBuzz.web.Models.DbTable
+@inject ApplicationDbContext _context
+@inject NavigationManager Navigation
+
+<h3>Available Quizzes</h3>
+
+@if (quizzes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="quiz-list">
+        @foreach (var quiz in quizzes)
+        {
+            <div class="quiz-card">
+                <h4>@quiz.QuizName</h4>
+                <p>@quiz.Description</p>
+                <button @onclick="() => StartQuiz(quiz.QuizId)">Start Quiz</button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<Quizzes> quizzes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        quizzes = await _context.Quizzes.ToListAsync();
+    }
+
+    private void StartQuiz(int quizId)
+    {
+        Navigation.NavigateTo($"/quiz/{quizId}");
+    }
+}
+

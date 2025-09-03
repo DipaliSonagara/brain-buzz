@@ -10,5 +10,10 @@ namespace BrainBuzz.web.Models.DbTable
         public string PasswordHash { get; set; } = default!;
         public string? Role { get; set; }
         public string? Email { get; set; }
+
+        
     }
+
+
 }
+

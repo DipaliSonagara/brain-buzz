@@ -13,7 +13,7 @@ namespace BrainBuzz.web.Models.DbTable
         public int TimeLimit { get; set; }
         public int TotalQuestions { get; set; }
 
-        public ICollection<Question> Questions { get; set; }
+        public ICollection<Questions> Questions { get; set; }
     }
 
     

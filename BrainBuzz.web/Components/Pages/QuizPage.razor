@@ -7,6 +7,7 @@
 
 <h3>@quiz?.QuizName Quiz</h3>
 
+
 @if (questions == null)
 {
     <p><em>Loading questions...</em></p>
@@ -19,11 +20,11 @@ else
             var q = questions[i];
             <div class="question-card">
                 <p><b>@(i + 1). @q.QuestionText</b></p>
-                <InputRadioGroup @bind-Value="userAnswers[i]">
-                    <InputRadio Value="A" /> @q.OptionA <br />
-                    <InputRadio Value="B" /> @q.OptionB <br />
-                    <InputRadio Value="C" /> @q.OptionC <br />
-                    <InputRadio Value="D" /> @q.OptionD <br />
+                <InputRadioGroup @bind-Value="userAnswers[i].SelectedAnswer">
+                    <InputRadio Value="@("A")" /> @q.OptionA <br />                  
+                    <InputRadio Value="@("B")" /> @q.OptionB <br />
+                    <InputRadio Value="@("C")"/> @q.OptionC <br />
+                    <InputRadio Value="@("D")"/> @q.OptionD <br />
                 </InputRadioGroup>
             </div>
         }
@@ -32,28 +33,42 @@ else
     </EditForm>
 }
 
+
+
 @code {
     [Parameter] public int quizId { get; set; }
     private Quizzes quiz;
     private List<Questions> questions;
-    private List<string> userAnswers;
+    private List<Models.UserAnswerModel> userAnswers;
 
     protected override async Task OnInitializedAsync()
     {
         quiz = await _context.Quizzes.FindAsync(quizId);
         questions = await _context.Questions.Where(q => q.QuizId == quizId).ToListAsync();
-        userAnswers = new List<string>(new string[questions.Count]);
+        userAnswers = questions.Select(q => new Models.UserAnswerModel
+{
+    QuestionId = q.QuestionId,
+    SelectedAnswer = string.Empty
+}).ToList();
     }
 
-    private void SubmitQuiz(EditContext context)
-    {
-        int score = 0;
-        for (int i = 0; i < questions.Count; i++)
-        {
-            if (userAnswers[i] == questions[i].CorrectOption)
-                score++;
+    private async Task SubmitQuiz(EditContext context)
+         {
+               int score = 0;
+               for (int i = 0; i < questions.Count; i++)
+                    {
+                         var correctAnswer = questions[i].CorrectOption;
+                         var selectedAnswer = userAnswers[i].SelectedAnswer;
+
+                         if (selectedAnswer == correctAnswer)
+                              {
+                                   score++;
+                              }
+                     }
+
+    Navigation.NavigateTo($"/result/{score}/{questions.Count}");
         }
 
-        Navigation.NavigateTo($"/result/{score}/{questions.Count}");
-    }
 }
+
+

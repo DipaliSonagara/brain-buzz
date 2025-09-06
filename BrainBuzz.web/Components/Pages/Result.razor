@@ -1,0 +1,18 @@
+﻿@inject NavigationManager Navigation
+
+@page "/result/{score:int}/{total:int}"
+
+<h3>Your Result</h3>
+<p>You scored @score out of @total</p>
+
+<button @onclick="GoBack">Back to Dashboard</button>
+
+@code {
+    [Parameter] public int score { get; set; }
+    [Parameter] public int total { get; set; }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/quizzes");
+    }
+}

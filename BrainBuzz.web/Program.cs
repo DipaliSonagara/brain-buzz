@@ -3,6 +3,7 @@ using BrainBuzz.web.Data;
 using BrainBuzz.web.Services;
 using BrainBuzz.web.Services.Interface;
 using Microsoft.EntityFrameworkCore;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,3 +34,9 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    DataSeeder.Seed(dbContext);
+}

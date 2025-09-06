@@ -13,47 +13,63 @@
 }
 else
 {
-    <EditForm Model="@userAnswers" OnValidSubmit="SubmitQuiz">
-        @for (int i = 0; i < questions.Count; i++)
-        {
-            var q = questions[i];
-            <div class="question-card">
-                <p><b>@(i + 1). @q.QuestionText</b></p>
-                <InputRadioGroup @bind-Value="userAnswers[i]">
-                    <InputRadio Value="A" /> @q.OptionA <br />
-                    <InputRadio Value="B" /> @q.OptionB <br />
-                    <InputRadio Value="C" /> @q.OptionC <br />
-                    <InputRadio Value="D" /> @q.OptionD <br />
-                </InputRadioGroup>
-            </div>
-        }
+    <EditForm OnValidSubmit="SubmitQuiz">
+    @for (int i = 0; i < questions.Count; i++)
+    {
+        var q = questions[i];
+        int idx = i;                    
+        <div class="question-card">
+            <p><b>@(idx + 1). @q.QuestionText</b></p>
 
-        <button type="submit">Submit</button>
-    </EditForm>
-}
+            <InputRadioGroup @bind-Value="userAnswers[idx]">
+                    <InputRadio Value="@("A")" /> @q.OptionA <br />
+                    <InputRadio Value="@("B")" /> @q.OptionB <br />
+                    <InputRadio Value="@("C")" /> @q.OptionC <br />
+                    <InputRadio Value="@("D")" /> @q.OptionD <br />
+            </InputRadioGroup>
+        </div>
+    }
+
+    <button type="submit">Submit</button>
+</EditForm>
 
 @code {
     [Parameter] public int quizId { get; set; }
+
     private Quizzes quiz;
-    private List<Questions> questions;
-    private List<string> userAnswers;
+    private List<Questions> questions = new();
+    private List<string> userAnswers = new();
 
     protected override async Task OnInitializedAsync()
     {
+       
         quiz = await _context.Quizzes.FindAsync(quizId);
-        questions = await _context.Questions.Where(q => q.QuizId == quizId).ToListAsync();
+        questions = await _context.Questions
+                                  .Where(q => q.QuizId == quizId)
+                                  .ToListAsync();
+
+       
         userAnswers = new List<string>(new string[questions.Count]);
+       
     }
 
-    private void SubmitQuiz(EditContext context)
+    
+    private async Task SubmitQuiz()
     {
-        int score = 0;
+                int score = 0;
         for (int i = 0; i < questions.Count; i++)
         {
-            if (userAnswers[i] == questions[i].CorrectOption)
+            var selected = userAnswers[i];
+            var correct = questions[i].CorrectOption; 
+            if (!string.IsNullOrEmpty(selected) && selected == correct)
+            {
                 score++;
+            }
         }
 
-        Navigation.NavigateTo($"/result/{score}/{questions.Count}");
+        
+        Console.WriteLine($"User scored: {score}");
+        await Task.CompletedTask;
     }
+}
 }

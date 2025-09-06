@@ -9,5 +9,8 @@ namespace BrainBuzz.web.Data
         : base(options){ }
 
         public DbSet<Users> Users { get; set; }
+
+        public DbSet<Quizzes> Quizzes { get; set; }
+        public DbSet<Questions> Questions { get; set; }
     }
 }

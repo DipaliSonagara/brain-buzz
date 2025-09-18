@@ -13,17 +13,25 @@
 }
 else
 {
-    <div class="quiz-list">
+    <div class="row">
         @foreach (var quiz in quizzes)
-            {
-            <div class="quiz-card">
-                <h4>@quiz.QuizName</h4>
-                <p>@quiz.Description</p>
-                <button type="button" class="btn btn-dashboard-primary" @onclick="() => StartQuiz(quiz.QuizId)">Start Quiz</button>
+        {
+            <div class="col-md-4 mb-3">
+                <div class="quiz-card">
+                    <div class="quiz-card-body">
+                        <h5 class="quiz-card-title">@quiz.QuizName</h5>
+                        <p class="quiz-card-text">@quiz.Description</p>
+                        <p class="quiz-card-meta">
+                            <i class="fas fa-question-circle"></i> @quiz.TotalQuestions Questions •
+                            <i class="fas fa-clock"></i> @quiz.TimeLimit
+                        </p>
+                        <button class="btn-dashboard primary" @onclick="() => StartQuiz(quiz.QuizId)">Start Quiz</button>
+                    </div>
+                </div>
             </div>
         }
     </div>
-}                       
+}
 
 @code {
     private List<Quizzes> quizzes;

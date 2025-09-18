@@ -1,30 +1,37 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">BrainBuzz.web</a>
+﻿<div class="col-md-2 col-lg-2">
+    <div class="sidebar">
+        <div class="position-sticky pt-3">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(selectedSection == "overview" ? "active" : "")" href="#" @onclick="SetOverviewSection">
+                        <i class="fas fa-home"></i> Overview
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(selectedSection == "quizzes" ? "active" : "")" href="Quizzes" @onclick="SetQuizzesSection">
+                        <i class="fas fa-question-circle"></i> Quizzes
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(selectedSection == "results" ? "active" : "")" href="#" @onclick="SetResultsSection">
+                        <i class="fas fa-chart-bar"></i> Results
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(selectedSection == "profile" ? "active" : "")" href="#" @onclick="SetProfileSection">
+                        <i class="fas fa-user"></i> Profile
+                    </a>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+@code {
+    private string selectedSection = "overview";
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
-
+    private void SetOverviewSection() => selectedSection = "overview";
+    private void SetQuizzesSection() => selectedSection = "quizzes";
+    private void SetResultsSection() => selectedSection = "results";
+    private void SetProfileSection() => selectedSection = "profile";
+}

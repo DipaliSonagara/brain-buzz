@@ -1,6 +1,7 @@
-﻿@inject NavigationManager Navigation
+﻿@page "/result/{score:int}/{total:int}"
+@inject NavigationManager Navigation
 
-@page "/result/{score:int}/{total:int}"
+@using Microsoft.EntityFrameworkCore.Metadata.Internal
 
 <h3>Your Result</h3>
 <p>You scored @score out of @total</p>

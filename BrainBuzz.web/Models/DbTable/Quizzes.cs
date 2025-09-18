@@ -2,11 +2,13 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 
+
 namespace BrainBuzz.web.Models.DbTable
 
 {
     public class Quizzes
     {
+        [Key]
         public int QuizId { get; set; }
         public string QuizName { get; set; }
         public string Description { get; set; }

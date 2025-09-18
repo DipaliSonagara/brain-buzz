@@ -14,9 +14,9 @@ public static class DataSeeder
         {
             var quizzes = new List<Quizzes>
             {
-                new Quizzes { QuizName = "HTML-CSS", Description = "Test your knowledge of building and styling web pages with HTML & CSS!", TimeLimit = 10, TotalQuestions = 3 },
-                new Quizzes { QuizName = "SQL", Description = "Test your database knowledge with SQL queries and concepts.", TimeLimit = 10, TotalQuestions = 3 },
-                new Quizzes { QuizName = "Python", Description = "Check your Python programming skills — logic, syntax, and more!", TimeLimit = 10, TotalQuestions = 3 }
+                new Quizzes { QuizId = 1, QuizName = "HTML-CSS", Description = "Test your knowledge of building and styling web pages with HTML & CSS!", TimeLimit = 10, TotalQuestions = 3 },
+                new Quizzes { QuizId = 2, QuizName = "SQL", Description = "Test your database knowledge with SQL queries and concepts.", TimeLimit = 10, TotalQuestions = 3 },
+                new Quizzes { QuizId = 3, QuizName = "Python", Description = "Check your Python programming skills — logic, syntax, and more!", TimeLimit = 10, TotalQuestions = 3 }
             };
 
             context.Quizzes.AddRange(quizzes);

@@ -1,7 +1,173 @@
-﻿
+﻿@page "/"
+@page "/home"
+@inject IJSRuntime JSRuntime
 
-<h3></h3>
+<PageTitle>BrainBuzz - Test Your Knowledge</PageTitle>
+
+<link href="C:\Users\foram\Source\Repos\brain-buzz\BrainBuzz.web\wwwroot\logo\home.css" rel="stylesheet" />
+
+<!-- Header -->
+<header class="header">
+    <nav class="nav">
+        <div class="logo">🎯 BrainBuzz</div>
+        <ul class="nav-links">
+            <li><a href="#home">Home</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#categories">Categories</a></li>
+            <li><a href="#about">About</a></li>
+        </ul>
+        <div class="auth-buttons">
+            <a href="/login"" class="btn btn-secondary">Sign In</a>
+            <a href="/register" class="btn btn-primary">Sign Up</a>
+        </div>
+    </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero" id="home">
+    <div class="hero-content">
+        <h1>Master Knowledge Through Fun Quizzes</h1>
+        <p>Challenge yourself with thousands of questions across multiple categories. Track your progress, compete with friends, and become a quiz champion!</p>
+        <div class="hero-buttons">
+            <a href="/dashboard" class="btn btn-primary hero-btn">Start Quiz Now</a>
+            <a href="#features" class="btn btn-secondary hero-btn">View Demo</a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features" id="features">
+    <div class="container">
+        <h2 class="section-title animate-on-scroll">Why Choose QuizMaster?</h2>
+        <div class="features-grid">
+            @foreach (var feature in Features)
+            {
+                <div class="feature-card animate-on-scroll">
+                    <div class="feature-icon">@feature.Icon</div>
+                    <h3>@feature.Title</h3>
+                    <p>@feature.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats">
+    <div class="container">
+        <div class="stats-grid">
+            @foreach (var stat in Stats)
+            {
+                <div class="stat-item animate-on-scroll">
+                    <h3 class="counter" data-target="@stat.Value">0+</h3>
+                    <p>@stat.Label</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- Categories Section -->
+<section class="categories" id="categories">
+    <div class="container">
+        <h2 class="section-title animate-on-scroll">Popular Quiz Categories</h2>
+        <div class="categories-grid">
+            @foreach (var category in Categories)
+            {
+                <div class="category-card animate-on-scroll" @onclick="() => NavigateToCategory(category.Id)">
+                    <h4>@category.Icon @category.Name</h4>
+                    <p>@category.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta">
+    <div class="container">
+        <h2 class="animate-on-scroll">Ready to Start Learning?</h2>
+        <p class="animate-on-scroll">Join thousands of learners who are already improving their knowledge with QuizMaster.</p>
+        <a href="/signup" class="btn btn-secondary animate-on-scroll cta-btn">Get Started Free</a>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-content">
+        <div class="footer-links">
+            <a href="/about">About Us</a>
+            <a href="/contact">Contact</a>
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms of Service</a>
+            <a href="/support">Support</a>
+        </div>
+        <p>&copy; 2024 QuizMaster. All rights reserved. Made with ❤️ for learners everywhere.</p>
+    </div>
+</footer>
 
 @code {
+    [Inject] NavigationManager NavigationManager { get; set; } = default!;
 
+    private List<FeatureModel> Features = new()
+    {
+        new FeatureModel { Icon = "📊", Title = "Track Progress", Description = "Monitor your learning journey with detailed analytics, score tracking, and performance insights." },
+        new FeatureModel { Icon = "🎯", Title = "Multiple Categories", Description = "Explore quizzes in science, history, literature, technology, and many more exciting topics." },
+        new FeatureModel { Icon = "🏆", Title = "Achievements", Description = "Unlock badges, maintain streaks, and climb leaderboards as you master different subjects." },
+        new FeatureModel { Icon = "⚡", Title = "Instant Feedback", Description = "Get immediate explanations for answers to enhance your learning experience." },
+        new FeatureModel { Icon = "👥", Title = "Social Learning", Description = "Challenge friends, join study groups, and learn together in a collaborative environment." },
+        new FeatureModel { Icon = "📱", Title = "Mobile Friendly", Description = "Take quizzes anywhere, anytime with our responsive design that works on all devices." }
+    };
+
+    private List<StatModel> Stats = new()
+    {
+        new StatModel { Value = 50000, Label = "Active Users" },
+        new StatModel { Value = 10000, Label = "Questions" },
+        new StatModel { Value = 25, Label = "Categories" },
+        new StatModel { Value = 1000000, Label = "Quizzes Completed" }
+    };
+
+    private List<CategoryModel> Categories = new()
+    {
+        new CategoryModel { Id = 1, Icon = "🧬", Name = "Science & Nature", Description = "Explore biology, chemistry, physics, and earth sciences" },
+        new CategoryModel { Id = 2, Icon = "🏛️", Name = "History & Geography", Description = "Journey through time and discover world cultures" },
+        new CategoryModel { Id = 3, Icon = "💻", Name = "Technology", Description = "Test your knowledge of computers, programming, and innovation" },
+        new CategoryModel { Id = 4, Icon = "🎨", Name = "Arts & Literature", Description = "Dive into creative works, famous authors, and artistic movements" },
+        new CategoryModel { Id = 5, Icon = "⚽", Name = "Sports & Games", Description = "Challenge yourself with trivia about athletics and entertainment" },
+        new CategoryModel { Id = 6, Icon = "🎵", Name = "Music & Movies", Description = "Test your pop culture knowledge and entertainment facts" }
+    };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initializeHomePage");
+        }
+    }
+
+    private void NavigateToCategory(int categoryId)
+    {
+        NavigationManager.NavigateTo($"/quiz/category/{categoryId}");
+    }
+
+    public class FeatureModel
+    {
+        public string Icon { get; set; } = string.Empty;
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
+
+    public class StatModel
+    {
+        public int Value { get; set; }
+        public string Label { get; set; } = string.Empty;
+    }
+
+    public class CategoryModel
+    {
+        public int Id { get; set; }
+        public string Icon { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+    }
 }

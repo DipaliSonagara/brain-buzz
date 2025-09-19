@@ -4,6 +4,7 @@
 @using BrainBuzz.web.Models.DbTable
 @inject ApplicationDbContext _context
 @inject NavigationManager Navigation
+@rendermode InteractiveServer
 
 <h3>Available Quizzes</h3>
 
@@ -25,7 +26,9 @@ else
                             <i class="fas fa-question-circle"></i> @quiz.TotalQuestions Questions •
                             <i class="fas fa-clock"></i> @quiz.TimeLimit
                         </p>
-                        <button class="btn-dashboard primary" @onclick="() => StartQuiz(quiz.QuizId)">Start Quiz</button>
+                        <button class="btn-dashboard primary" @onclick="@(() => StartQuiz(quiz.QuizId))">
+                            Start Quiz
+                        </button>
                     </div>
                 </div>
             </div>
@@ -41,10 +44,12 @@ else
         quizzes = await _context.Quizzes.ToListAsync();
     }
 
-    private void StartQuiz(int quizId)
+    private Task StartQuiz(int quizId)
     {
-        Console.WriteLine($"Redirecting to quiz {quizId}");
+        Console.WriteLine($"Redirecting to quiz {quizId}"); // server logs
         Navigation.NavigateTo($"/quiz/{quizId}");
+        return Task.CompletedTask;
     }
+
 }
 

@@ -23,7 +23,7 @@
                                 </a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link @(selectedSection == "quizzes" ? "active" : "")" href="Quizzes" @onclick="SetQuizzesSection">
+                                <a class="nav-link @(selectedSection == "quizzes" ? "active" : "")" href="#" @onclick="SetQuizzesSection">
                                     <i class="fas fa-question-circle"></i> Quizzes
                                 </a>
                             </li>
@@ -137,105 +137,7 @@
                         }
                         else if (selectedSection == "quizzes")
                         {
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="d-flex justify-content-between align-items-center mb-4">
-                                        <h3>Available Quizzes</h3>
-                                        <button class="btn-dashboard primary">
-                                            <i class="fas fa-plus"></i> Create New Quiz
-                                        </button>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <div class="quiz-card">
-                                                <div class="quiz-card-body">
-                                                    <h5 class="quiz-card-title">HTML-CSS</h5>
-                                                    <p class="quiz-card-text">Test your knowledge of building and styling web pages with HTML & CSS!</p>
-                                                    <p class="quiz-card-meta">
-                                                        <i class="fas fa-question-circle"></i> 10 Questions •
-                                                        <i class="fas fa-clock"></i> 10 minutes
-                                                    </p>
-                                                    <button class="btn-dashboard primary">Start Quiz</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-
-
-                                        <div class="col-md-4 mb-3">
-                                            <div class="quiz-card">
-                                                <div class="quiz-card-body">
-                                                    <h5 class="quiz-card-title">SQL</h5>
-                                                    <p class="quiz-card-text">Test your database knowledge with SQL queries and concepts.</p>
-                                                    <p class="quiz-card-meta">
-                                                        <i class="fas fa-question-circle"></i> 10 Questions •
-                                                        <i class="fas fa-clock"></i> 10 minutes
-                                                    </p>
-                                                    <button class="btn-dashboard primary">Start Quiz</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4 mb-3">
-                                            <div class="quiz-card">
-                                                <div class="quiz-card-body">
-                                                    <h5 class="quiz-card-title">PYTHON</h5>
-                                                    <p class="quiz-card-text">Check your Python programming skills — logic, syntax, and more!</p>
-                                                    <p class="quiz-card-meta">
-                                                        <i class="fas fa-question-circle"></i> 10 Questions •
-                                                        <i class="fas fa-clock"></i> 10 minutes
-                                                    </p>
-                                                    <button class="btn-dashboard primary">Start Quiz</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4 mb-3">
-                                            <div class="quiz-card">
-                                                <div class="quiz-card-body">
-                                                    <h5 class="quiz-card-title">JAVA</h5>
-                                                    <p class="quiz-card-text">Assess your Java programming knowledge from basics to OOP.</p>
-                                                    <p class="quiz-card-meta">
-                                                        <i class="fas fa-question-circle"></i> 10 Questions •
-                                                        <i class="fas fa-clock"></i> 10 minutes
-                                                    </p>
-                                                    <button class="btn-dashboard primary">Start Quiz</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-
-                                        <div class="col-md-4 mb-3">
-                                            <div class="quiz-card">
-                                                <div class="quiz-card-body">
-                                                    <h5 class="quiz-card-title">C</h5>
-                                                    <p class="quiz-card-text">Challenge your understanding of foundational C programming concepts.</p>
-                                                    <p class="quiz-card-meta">
-                                                        <i class="fas fa-question-circle"></i> 10 Questions •
-                                                        <i class="fas fa-clock"></i> 10 minutes
-                                                    </p>
-                                                    <button class="btn-dashboard primary">Start Quiz</button>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-4 mb-3">
-                                            <div class="quiz-card">
-                                                <div class="quiz-card-body">
-                                                    <h5 class="quiz-card-title">C#</h5>
-                                                    <p class="quiz-card-text">Evaluate your grasp of C# and .NET fundamentals.</p>
-                                                    <p class="quiz-card-meta">
-                                                        <i class="fas fa-question-circle"></i> 10 Questions •
-                                                        <i class="fas fa-clock"></i> 10 minutes
-                                                    </p>
-                                                    <button class="btn-dashboard primary">Start Quiz</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            <Quiz></Quiz>
                         }
                         else if (selectedSection == "results")
                         {

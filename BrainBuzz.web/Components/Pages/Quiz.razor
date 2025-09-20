@@ -6,36 +6,41 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<h3>Available Quizzes</h3>
-
-@if (quizzes == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        @foreach (var quiz in quizzes)
-        {
-            <div class="col-md-4 mb-3">
-                <div class="quiz-card">
-                    <div class="quiz-card-body">
-                        <h5 class="quiz-card-title">@quiz.QuizName</h5>
-                        <p class="quiz-card-text">@quiz.Description</p>
-                        <p class="quiz-card-meta">
-                            <i class="fas fa-question-circle"></i> @quiz.TotalQuestions Questions •
-                            <i class="fas fa-clock"></i> @quiz.TimeLimit
-                        </p>
-                        <button class="btn-dashboard primary" @onclick="@(() => StartQuiz(quiz.QuizId))">
-                            Start Quiz
-                        </button>
-                    </div>
+<div class="col-md-10 col-lg-10">
+    <main class="dashboard-main">
+        <div class="dashboard-content fade-in">
+            <h3>Available Quizzes</h3>
+            @if (quizzes == null)
+            {
+                <p><em>Loading...</em></p>
+            }
+            else
+            {
+                <div class="row">
+                    @foreach (var quiz in quizzes)
+                    {
+                        <div class="col-md-4 mb-3">
+                            <div class="quiz-card">
+                                <div class="quiz-card-body">
+                                    <h5 class="quiz-card-title">@quiz.QuizName</h5>
+                                    <p class="quiz-card-text">@quiz.Description</p>
+                                    <p class="quiz-card-meta">
+                                        <i class="fas fa-question-circle"></i> @quiz.TotalQuestions Questions •
+                                        <i class="fas fa-clock"></i> @quiz.TimeLimit
+                                    </p>
+                                    <button class="btn-dashboard primary" @onclick="@(() => StartQuiz(quiz.QuizId))">
+                                        Start Quiz
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
-            </div>
-        }
-    </div>
-}
+            }
 
+        </div>
+    </main>
+</div>
 @code {
     private List<Quizzes> quizzes;
 

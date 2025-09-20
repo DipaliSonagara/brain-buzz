@@ -1,103 +1,323 @@
 ﻿
+@page "/"
 @page "/dashboard"
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @rendermode InteractiveServer
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
+
 <PageTitle>Dashboard - Quiz App</PageTitle>
 
-<div class="col-md-10 col-lg-10">
-    <main class="dashboard-main">
-        <div class="dashboard-header">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
-                <h1>Dashboard</h1>
-                <div class="btn-toolbar">
-                    <div class="btn-group me-2">
-                        <a href="/login" class="btn-dashboard secondary">Sign In</a>
-                        <a href="/register" class="btn-dashboard secondary">Sign Up</a>
-                    </div>
-                </div>
-            </div>  
-        </div>
-        <div class="dashboard-content fade-in">
-            <div class="row">
-                <div class="col-md-6 col-lg-3 mb-4">
-                    <div class="stat-card primary">
-                        <div class="stat-card-body">
-                            <div class="stat-card-content">
-                                <h5>Total Quizzes</h5>
-                                <h2>0</h2>
-                            </div>
-                            <i class="fas fa-question-circle stat-card-icon"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-4">
-                    <div class="stat-card success">
-                        <div class="stat-card-body">
-                            <div class="stat-card-content">
-                                <h5>Completed</h5>
-                                <h2>0</h2>
-                            </div>
-                            <i class="fas fa-check-circle stat-card-icon"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-4">
-                    <div class="stat-card warning">
-                        <div class="stat-card-body">
-                            <div class="stat-card-content">
-                                <h5>Average Score</h5>
-                                <h2>0</h2>
-                            </div>
-                            <i class="fas fa-chart-line stat-card-icon"></i>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6 col-lg-3 mb-4">
-                    <div class="stat-card info">
-                        <div class="stat-card-body">
-                            <div class="stat-card-content">
-                                <h5>Best Score</h5>
-                                <h2>0</h2>
-                            </div>
-                            <i class="fas fa-trophy stat-card-icon"></i>
-                        </div>
+<div class="container-fluid dashboard-container">
+    <div class="row flex-nowrap">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 col-lg-2">
+                <div class="sidebar">
+                    <div class="position-sticky pt-3">
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link @(selectedSection == "overview" ? "active" : "")" href="#" @onclick="SetOverviewSection">
+                                    <i class="fas fa-home"></i> Overview
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(selectedSection == "quizzes" ? "active" : "")" href="Quizzes" @onclick="SetQuizzesSection">
+                                    <i class="fas fa-question-circle"></i> Quizzes
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(selectedSection == "results" ? "active" : "")" href="#" @onclick="SetResultsSection">
+                                    <i class="fas fa-chart-bar"></i> Results
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(selectedSection == "profile" ? "active" : "")" href="#" @onclick="SetProfileSection">
+                                    <i class="fas fa-user"></i> Profile
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="content-card">
-                        <div class="content-card-header">
-                            <h3>Recent Activity</h3>
-                        </div>
-                        <div class="content-card-body">
-                            <div class="list-group-dashboard">
-                                <div class="list-group-item-dashboard">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6></h6>
-                                        <small></small>
-                                    </div>
-                                    <p></p>
-                                </div>
-                                <div class="list-group-item-dashboard">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6></h6>
-                                        <small></small>
-                                    </div>
-                                    <p></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-</div>
 
+            <!-- Main content -->
+            <div class="col-md-10 col-lg-10">
+                <main class="dashboard-main">
+                    <div class="dashboard-header">
+                        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
+                            <h1>Dashboard</h1>
+                            <div class="btn-toolbar">
+                                <div class="btn-group me-2">
+                                    <a href="/login" class="btn-dashboard secondary">Sign In</a>
+
+                                    <a href="/register" class="btn-dashboard secondary">Sign Up</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-content fade-in">
+                        @if (selectedSection == "overview")
+                        {
+                            <div class="row">
+                                <div class="col-md-6 col-lg-3 mb-4">
+                                    <div class="stat-card primary">
+                                        <div class="stat-card-body">
+                                            <div class="stat-card-content">
+                                                <h5>Total Quizzes</h5>
+                                                <h2>0</h2>
+                                            </div>
+                                            <i class="fas fa-question-circle stat-card-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-4">
+                                    <div class="stat-card success">
+                                        <div class="stat-card-body">
+                                            <div class="stat-card-content">
+                                                <h5>Completed</h5>
+                                                <h2>0</h2>
+                                            </div>
+                                            <i class="fas fa-check-circle stat-card-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-4">
+                                    <div class="stat-card warning">
+                                        <div class="stat-card-body">
+                                            <div class="stat-card-content">
+                                                <h5>Average Score</h5>
+                                                <h2>0</h2>
+                                            </div>
+                                            <i class="fas fa-chart-line stat-card-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6 col-lg-3 mb-4">
+                                    <div class="stat-card info">
+                                        <div class="stat-card-body">
+                                            <div class="stat-card-content">
+                                                <h5>Best Score</h5>
+                                                <h2>0</h2>
+                                            </div>
+                                            <i class="fas fa-trophy stat-card-icon"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="content-card">
+                                        <div class="content-card-header">
+                                            <h3>Recent Activity</h3>
+                                        </div>
+                                        <div class="content-card-body">
+                                            <div class="list-group-dashboard">
+                                                <div class="list-group-item-dashboard">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6></h6>
+                                                        <small></small>
+                                                    </div>
+                                                    <p></p>
+                                                </div>
+                                                <div class="list-group-item-dashboard">
+                                                    <div class="d-flex w-100 justify-content-between">
+                                                        <h6></h6>
+                                                        <small></small>
+                                                    </div>
+                                                    <p></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else if (selectedSection == "quizzes")
+                        {
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h3>Available Quizzes</h3>
+                                        <button class="btn-dashboard primary">
+                                            <i class="fas fa-plus"></i> Create New Quiz
+                                        </button>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">HTML-CSS</h5>
+                                                    <p class="quiz-card-text">Test your knowledge of building and styling web pages with HTML & CSS!</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 10 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">SQL</h5>
+                                                    <p class="quiz-card-text">Test your database knowledge with SQL queries and concepts.</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 10 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">PYTHON</h5>
+                                                    <p class="quiz-card-text">Check your Python programming skills — logic, syntax, and more!</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 10 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">JAVA</h5>
+                                                    <p class="quiz-card-text">Assess your Java programming knowledge from basics to OOP.</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 10 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">C</h5>
+                                                    <p class="quiz-card-text">Challenge your understanding of foundational C programming concepts.</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 10 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4 mb-3">
+                                            <div class="quiz-card">
+                                                <div class="quiz-card-body">
+                                                    <h5 class="quiz-card-title">C#</h5>
+                                                    <p class="quiz-card-text">Evaluate your grasp of C# and .NET fundamentals.</p>
+                                                    <p class="quiz-card-meta">
+                                                        <i class="fas fa-question-circle"></i> 10 Questions •
+                                                        <i class="fas fa-clock"></i> 10 minutes
+                                                    </p>
+                                                    <button class="btn-dashboard primary">Start Quiz</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else if (selectedSection == "results")
+                        {
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="content-card">
+                                        <div class="content-card-header">
+                                            <h3>Quiz Results</h3>
+                                        </div>
+                                        <div class="content-card-body">
+                                            <div class="table-responsive">
+                                                <table class="dashboard-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Quiz Name</th>
+                                                            <th>Date</th>
+                                                            <th>Score</th>
+                                                            <th>Time Taken</th>
+                                                            <th>Actions</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td><span class="badge-dashboard success"></span></td>
+                                                            <td></td>
+                                                            <td><button class="btn-dashboard secondary">View Details</button></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td></td>
+                                                            <td></td>
+                                                            <td><span class="badge-dashboard warning"></span></td>
+                                                            <td></td>
+                                                            <td><button class="btn-dashboard secondary">View Details</button></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        else if (selectedSection == "profile")
+                        {
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="content-card">
+                                        <div class="content-card-header">
+                                            <h3>Profile Settings</h3>
+                                        </div>
+                                        <div class="content-card-body">
+                                            <div class="form-dashboard">
+                                                <div class="form-group-dashboard">
+                                                    <label>Username</label>
+                                                    <input type="text" class="form-control-dashboard" value="@currentUser" readonly>
+                                                </div>
+                                                <div class="form-group-dashboard">
+                                                    <label>Email</label>
+                                                    <input type="email" class="form-control-dashboard" placeholder="user@example.com">
+                                                </div>
+                                                <div class="form-group-dashboard">
+                                                    <label>Full Name</label>
+                                                    <input type="text" class="form-control-dashboard" placeholder="Your full name">
+                                                </div>
+                                                <button type="submit" class="btn-dashboard primary">
+                                                    <i class="fas fa-save"></i> Update Profile
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+</div>
 
 @code {
     private string selectedSection = "overview";

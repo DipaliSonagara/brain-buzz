@@ -4,43 +4,46 @@
 @using BrainBuzz.web.Models.DbTable
 @inject ApplicationDbContext _context
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
-<div class="col-md-10 col-lg-10">
-    <main class="dashboard-main">
-        <div class="dashboard-content fade-in">
-            <h3>Available Quizzes</h3>
-            @if (quizzes == null)
-            {
-                <p><em>Loading...</em></p>
-            }
-            else
-            {
-                <div class="row">
-                    @foreach (var quiz in quizzes)
-                    {
-                        <div class="col-md-4 mb-3">
-                            <div class="quiz-card">
-                                <div class="quiz-card-body">
-                                    <h5 class="quiz-card-title">@quiz.QuizName</h5>
-                                    <p class="quiz-card-text">@quiz.Description</p>
-                                    <p class="quiz-card-meta">
-                                        <i class="fas fa-question-circle"></i> @quiz.TotalQuestions Questions •
-                                        <i class="fas fa-clock"></i> @quiz.TimeLimit
-                                    </p>
-                                    <button class="btn-dashboard primary" @onclick="@(() => StartQuiz(quiz.QuizId))">
-                                        Start Quiz
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            }
+<h3>Available Quizzes</h3>
 
-        </div>
-    </main>
-</div>
+@if (quizzes == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (!quizzes.Any())
+{
+    <p><em>No quizzes available.</em></p>
+}
+else
+{
+    <div class="row">
+        @foreach (var quiz in quizzes)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="quiz-card">
+                    <div class="quiz-card-body">
+                        <h5 class="quiz-card-title">@quiz.QuizName</h5>
+                        <p class="quiz-card-text">@quiz.Description</p>
+                        <p class="quiz-card-meta">
+                            <i class="fas fa-question-circle"></i> @quiz.TotalQuestions Questions •
+                            <i class="fas fa-clock"></i> @quiz.TimeLimit
+                        </p>
+                        <a href="/quiz/@quiz.QuizId" class="btn-dashboard primary">Start Quiz</a>
+                       @*  <button type="button"
+                                class="btn-dashboard primary"
+                                @onclick="@(() => StartQuiz(quiz.QuizId))">
+                           Start Quiz
+                        </button> *@
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
 @code {
     private List<Quizzes> quizzes;
 
@@ -49,12 +52,18 @@
         quizzes = await _context.Quizzes.ToListAsync();
     }
 
-    private Task StartQuiz(int quizId)
+    private async Task StartQuiz(int quizId)
     {
-        Console.WriteLine($"Redirecting to quiz {quizId}"); // server logs
-        Navigation.NavigateTo($"/quiz/{quizId}");
-        return Task.CompletedTask;
+        try
+        {
+            await Task.Delay(100);
+            Navigation.NavigateTo($"quiz/{quizId}");
+        }
+        catch (Exception ex)
+        {
+        }
+        finally
+        {
+        }
     }
-
 }
-

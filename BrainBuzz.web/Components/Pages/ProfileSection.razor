@@ -1,0 +1,32 @@
+@code {
+    [Parameter] public string CurrentUser { get; set; } = "";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="content-card">
+            <div class="content-card-header">
+                <h3>Profile Settings</h3>
+            </div>
+            <div class="content-card-body">
+                <div class="form-dashboard">
+                    <div class="form-group-dashboard">
+                        <label>Username</label>
+                        <input type="text" class="form-control-dashboard" value="@CurrentUser" readonly>
+                    </div>
+                    <div class="form-group-dashboard">
+                        <label>Email</label>
+                        <input type="email" class="form-control-dashboard" placeholder="user@example.com">
+                    </div>
+                    <div class="form-group-dashboard">
+                        <label>Full Name</label>
+                        <input type="text" class="form-control-dashboard" placeholder="Your full name">
+                    </div>
+                    <button type="submit" class="btn-dashboard primary">
+                        <i class="fas fa-save"></i> Update Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

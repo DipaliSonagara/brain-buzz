@@ -3,35 +3,26 @@
         <div class="position-sticky pt-3">
             <ul class="nav flex-column">
                 <li class="nav-item">
-                    <a class="nav-link @(selectedSection == "overview" ? "active" : "")" href="#" @onclick="SetOverviewSection">
+                    <NavLink class="nav-link" href="/dashboard/overview">
                         <i class="fas fa-home"></i> Overview
-                    </a>
+                    </NavLink>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(selectedSection == "quizzes" ? "active" : "")" href="Quizzes" @onclick="SetQuizzesSection">
+                    <NavLink class="nav-link" href="/dashboard/quizzes">
                         <i class="fas fa-question-circle"></i> Quizzes
-                    </a>
+                    </NavLink>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(selectedSection == "results" ? "active" : "")" href="#" @onclick="SetResultsSection">
+                    <NavLink class="nav-link" href="/dashboard/results">
                         <i class="fas fa-chart-bar"></i> Results
-                    </a>
+                    </NavLink>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link @(selectedSection == "profile" ? "active" : "")" href="#" @onclick="SetProfileSection">
+                    <NavLink class="nav-link" href="/dashboard/profile">
                         <i class="fas fa-user"></i> Profile
-                    </a>
+                    </NavLink>
                 </li>
             </ul>
         </div>
     </div>
 </div>
-
-@code {
-    private string selectedSection = "overview";
-
-    private void SetOverviewSection() => selectedSection = "overview";
-    private void SetQuizzesSection() => selectedSection = "quizzes";
-    private void SetResultsSection() => selectedSection = "results";
-    private void SetProfileSection() => selectedSection = "profile";
-}

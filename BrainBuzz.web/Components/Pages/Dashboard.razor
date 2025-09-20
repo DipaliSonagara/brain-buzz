@@ -1,6 +1,7 @@
 ﻿@page "/dashboard"
 @page "/dashboard/{Section}"
 
+@using BrainBuzz.web.Components.Layout
 @using Microsoft.AspNetCore.Components.Authorization
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
@@ -10,34 +11,7 @@
     <div class="row flex-nowrap">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-2 col-lg-2">
-                <div class="sidebar">
-                    <div class="position-sticky pt-3">
-                        <ul class="nav flex-column">
-                            <li class="nav-item">
-                                <NavLink class="nav-link" href="/dashboard/overview">
-                                    <i class="fas fa-home"></i> Overview
-                                </NavLink>
-                            </li>
-                            <li class="nav-item">
-                                <NavLink class="nav-link" href="/dashboard/quizzes">
-                                    <i class="fas fa-question-circle"></i> Quizzes
-                                </NavLink>
-                            </li>
-                            <li class="nav-item">
-                                <NavLink class="nav-link" href="/dashboard/results">
-                                    <i class="fas fa-chart-bar"></i> Results
-                                </NavLink>
-                            </li>
-                            <li class="nav-item">
-                                <NavLink class="nav-link" href="/dashboard/profile">
-                                    <i class="fas fa-user"></i> Profile
-                                </NavLink>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            <NavMenu></NavMenu>
 
             <!-- Main content -->
             <div class="col-md-10 col-lg-10">

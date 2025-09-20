@@ -1,50 +1,17 @@
 ﻿@page "/quiz/{quizId:int}"
+@using BrainBuzz.web.Components.Layout
 @using BrainBuzz.web.Data
 @using BrainBuzz.web.Models.DbTable
 @using Microsoft.EntityFrameworkCore
 @inject ApplicationDbContext _context
 @inject NavigationManager Navigation
+@rendermode InteractiveServer
 
 <PageTitle>Quiz - @quiz?.QuizName</PageTitle>
 
 <div class="container-fluid dashboard-container">
     <div class="row flex-nowrap">
-        <!-- Sidebar -->
-        <div class="col-md-2 col-lg-2">
-            <div class="sidebar">
-                <div class="position-sticky pt-3">
-                    <!-- Logo/Brand -->
-                    <div class="text-center mb-4">
-                        <a href="/dashboard" class="brand-link">
-                            <div class="logo">🎯 BrainBuzz</div>
-                        </a>
-                    </div>
-
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="/dashboard/overview">
-                                <i class="fas fa-home"></i> Overview
-                            </NavLink>
-                        </li>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="/dashboard/quizzes">
-                                <i class="fas fa-question-circle"></i> Quizzes
-                            </NavLink>
-                        </li>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="/dashboard/results">
-                                <i class="fas fa-chart-bar"></i> Results
-                            </NavLink>
-                        </li>
-                        <li class="nav-item">
-                            <NavLink class="nav-link" href="/dashboard/profile">
-                                <i class="fas fa-user"></i> Profile
-                            </NavLink>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+        <NavMenu></NavMenu>
 
         <!-- Main content -->
         <div class="col-md-10 col-lg-10">
@@ -328,6 +295,7 @@
 
     private void GoToDashboard()
     {
-        Navigation.NavigateTo("/dashboard");
+        Navigation.NavigateTo("/dashboard/quizzes");
+        StateHasChanged();
     }
 }

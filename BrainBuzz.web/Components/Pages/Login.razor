@@ -63,39 +63,86 @@
 @code {
     public LoginRequest loginRequest = new();
     private bool isLoading = false;
-
     private string? loginMessage;
-
-
 
     public async Task LoginProcess()
     {
         isLoading = true;
+        loginMessage = null; // Clear previous messages
+        StateHasChanged(); // Update UI to show loading state
+
         try
         {
             Console.WriteLine($"Login attempt: {loginRequest.Username}");
             bool isSuccess = await UserService.LoginUser(loginRequest);
+
             if (isSuccess)
             {
-                Navigation.NavigateTo("/dashboard");
+                loginMessage = "Login successful! Redirecting...";
+                StateHasChanged(); // Show success message briefly
+
+                // Small delay to show success message (optional)
+                await Task.Delay(500);
+
+                // Navigate to home with force reload
+                Navigation.NavigateTo("/home", forceLoad: true);
             }
             else
             {
-                loginMessage = "Invalid username or password.";
+                loginMessage = "Invalid username or password. Please try again.";
             }
-            StateHasChanged();
+        }
+        catch (HttpRequestException httpEx)
+        {
+            Console.WriteLine($"Network error: {httpEx.Message}");
+            loginMessage = "Network error. Please check your connection and try again.";
+        }
+        catch (TaskCanceledException)
+        {
+            Console.WriteLine("Request timeout");
+            loginMessage = "Request timeout. Please try again.";
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Login error: {ex.Message}");
+            loginMessage = "An unexpected error occurred. Please try again later.";
         }
         finally
         {
             isLoading = false;
-            StateHasChanged();
+            StateHasChanged(); // Update UI to hide loading state
         }
     }
 
+    // Optional: Add input validation method
+    public bool ValidateInput()
+    {
+        if (string.IsNullOrWhiteSpace(loginRequest.Username))
+        {
+            loginMessage = "Please enter a username.";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(loginRequest.Password))
+        {
+            loginMessage = "Please enter a password.";
+            return false;
+        }
+
+        return true;
+    }
+
+    // Enhanced version with validation
+    public async Task LoginProcessWithValidation()
+    {
+        if (!ValidateInput())
+        {
+            StateHasChanged();
+            return;
+        }
+
+        await LoginProcess();
+    }
 }
 
 

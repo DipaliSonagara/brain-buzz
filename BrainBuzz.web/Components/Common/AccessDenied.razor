@@ -1,0 +1,159 @@
+@* Common access denied component *@
+@using BrainBuzz.web.Constants
+
+<div class="access-denied-container">
+    <div class="access-denied-card">
+        <div class="access-denied-header">
+            <div class="access-denied-logo">
+                <img src="/logo/brain-buzz-logo.png" alt="brain-buzz" class="access-denied-logo-image" />
+            </div>
+            <h1 class="access-denied-title">Access Denied</h1>
+            <p class="access-denied-subtitle">@Message</p>
+        </div>
+
+        <div class="access-denied-body">
+            <div class="access-denied-icon">
+                <i class="fas fa-lock fa-4x text-warning"></i>
+            </div>
+            
+            <div class="access-denied-message">
+                <h3>Authentication Required</h3>
+                <p>Please sign in to your account to access this page.</p>
+            </div>
+
+            <div class="access-denied-actions">
+                <a href="@AppConstants.Routes.Login" class="access-denied-btn access-denied-btn-primary">
+                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                </a>
+                <a href="@AppConstants.Routes.Register" class="access-denied-btn access-denied-btn-secondary">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .access-denied-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 60vh;
+        padding: 2rem;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    
+    .access-denied-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        padding: 3rem;
+        max-width: 500px;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .access-denied-header {
+        margin-bottom: 2rem;
+    }
+    
+    .access-denied-logo {
+        margin-bottom: 1rem;
+    }
+    
+    .access-denied-logo-image {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+    }
+    
+    .access-denied-title {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 0.5rem;
+    }
+    
+    .access-denied-subtitle {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+        margin-bottom: 0;
+    }
+    
+    .access-denied-body {
+        margin-top: 2rem;
+    }
+    
+    .access-denied-icon {
+        text-align: center;
+        margin: 2rem 0;
+    }
+    
+    .access-denied-message {
+        text-align: center;
+        margin: 2rem 0;
+    }
+    
+    .access-denied-message h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+    }
+    
+    .access-denied-message p {
+        color: #7f8c8d;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    
+    .access-denied-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .access-denied-btn {
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+        font-size: 1rem;
+        font-weight: 600;
+        border-radius: 12px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+    
+    .access-denied-btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: transparent;
+    }
+    
+    .access-denied-btn-primary:hover {
+        background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .access-denied-btn-secondary {
+        background: transparent;
+        color: #7f8c8d;
+        border-color: #bdc3c7;
+    }
+    
+    .access-denied-btn-secondary:hover {
+        background: #f8f9fa;
+        color: #5a6c7d;
+        border-color: #95a5a6;
+        transform: translateY(-2px);
+    }
+</style>
+
+@code {
+    [Parameter] public string Message { get; set; } = "You need to be logged in to access this page.";
+}

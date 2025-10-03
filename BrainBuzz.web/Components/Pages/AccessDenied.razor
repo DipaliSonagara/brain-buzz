@@ -1,0 +1,109 @@
+@page "/access-denied"
+@layout BlankLayout
+@using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Constants
+
+<PageTitle>Access Denied - BrainBuzz</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <img src="/logo/brain-buzz-logo.png" alt="brain-buzz" class="logo-image" />
+            </div>
+            <h1 class="auth-title">Access Denied</h1>
+            <p class="auth-subtitle">@Message</p>
+        </div>
+
+        <div class="auth-body">
+            <div class="access-denied-icon">
+                <i class="fas fa-lock fa-4x text-warning"></i>
+            </div>
+            
+            <div class="access-denied-message">
+                <h3>Authentication Required</h3>
+                <p>Please sign in to your account to access this page.</p>
+            </div>
+
+            <div class="auth-actions">
+                <a href="@AppConstants.Routes.Login" class="btn btn-primary btn-block">
+                    <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                </a>
+                <a href="@AppConstants.Routes.Register" class="btn btn-secondary btn-block">
+                    <i class="fas fa-user-plus me-2"></i>Create Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .access-denied-icon {
+        text-align: center;
+        margin: 2rem 0;
+    }
+    
+    .access-denied-message {
+        text-align: center;
+        margin: 2rem 0;
+    }
+    
+    .access-denied-message h3 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    
+    .access-denied-message p {
+        color: #666;
+        font-size: 1.1rem;
+    }
+    
+    .auth-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn-block {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+        border-radius: 8px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        color: white;
+    }
+    
+    .btn-secondary:hover {
+        background-color: #545b62;
+        border-color: #545b62;
+        color: white;
+        transform: translateY(-2px);
+    }
+</style>
+
+@code {
+    [Parameter] public string Message { get; set; } = "You need to be logged in to access this page.";
+}

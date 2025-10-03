@@ -1,0 +1,160 @@
+@using Microsoft.Extensions.Logging
+@inject ILogger<GlobalErrorBoundary> Logger
+@inject NavigationManager Navigation
+
+<CascadingValue Value="this">
+    @ChildContent
+</CascadingValue>
+
+@if (hasError)
+{
+    <div class="error-boundary">
+        <div class="error-boundary-content">
+            <div class="error-icon">⚠️</div>
+            <h2 class="error-title">Something went wrong</h2>
+            <p class="error-message">An unexpected error occurred. Please try refreshing the page.</p>
+
+            @if (ShowDetails && !string.IsNullOrEmpty(errorMessage))
+            {
+                <details class="error-details">
+                    <summary>Error Details</summary>
+                    <pre class="error-stack">@errorMessage</pre>
+                </details>
+            }
+            
+            <div class="error-actions">
+                <button class="btn btn-primary" @onclick="RefreshPage">
+                    <i class="fas fa-refresh"></i> Refresh Page
+                </button>
+                <button class="btn btn-outline" @onclick="GoHome">
+                    <i class="fas fa-home"></i> Go Home
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public bool ShowDetails { get; set; } = false;
+    
+    private bool hasError = false;
+    private string errorMessage = string.Empty;
+
+    public void HandleException(Exception exception)
+    {
+        hasError = true;
+        errorMessage = exception.ToString();
+        
+        Logger.LogError(exception, "Unhandled exception in component");
+        StateHasChanged();
+    }
+
+    private void RefreshPage()
+    {
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: true);
+    }
+
+    private void GoHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    public void Reset()
+    {
+        hasError = false;
+        errorMessage = string.Empty;
+        StateHasChanged();
+    }
+}
+
+<style>
+    .error-boundary {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        padding: 2rem;
+    }
+
+    .error-boundary-content {
+        text-align: center;
+        max-width: 500px;
+        background: white;
+        padding: 3rem 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .error-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .error-title {
+        color: #dc3545;
+        margin-bottom: 1rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+
+    .error-message {
+        color: #6c757d;
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    .error-details {
+        margin: 1.5rem 0;
+        text-align: left;
+    }
+
+    .error-stack {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .error-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-outline {
+        background-color: transparent;
+        color: #6c757d;
+        border: 1px solid #6c757d;
+    }
+
+    .btn-outline:hover {
+        background-color: #6c757d;
+        color: white;
+    }
+</style>

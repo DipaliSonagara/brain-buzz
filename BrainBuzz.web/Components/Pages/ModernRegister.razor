@@ -1,0 +1,214 @@
+@page "/register"
+@using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Models.Request
+@using BrainBuzz.web.Services
+@using BrainBuzz.web.Components.Common
+@inject AuthenticationService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+@layout BlankLayout
+
+<PageTitle>Create Account - BrainBuzz</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card animate-scale-in">
+        <!-- Header -->
+        <div class="auth-header">
+            <div class="auth-logo">🧠 BrainBuzz</div>
+            <h1 class="auth-title">Create Your Account</h1>
+            <p class="auth-subtitle">Join thousands of learners worldwide</p>
+        </div>
+
+        <!-- Success Alert -->
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success">
+                <span>✓</span>
+                <div>
+                    <strong>Success!</strong>
+                    <p style="margin: 0;">@successMessage</p>
+                </div>
+            </div>
+        }
+
+        <!-- Registration Form -->
+        <EditForm Model="registerRequest" OnValidSubmit="HandleRegister" class="auth-form">
+            <DataAnnotationsValidator />
+            
+            <!-- Username Field -->
+            <div class="form-group">
+                <label for="username" class="form-label">Username *</label>
+                <InputText 
+                    id="username"
+                    class="form-input" 
+                    @bind-Value="registerRequest.Username" 
+                    placeholder="Choose a username"
+                />
+                <span class="form-help">3-20 characters, letters and numbers only</span>
+                <ValidationMessage For="@(() => registerRequest.Username)" class="form-error" />
+            </div>
+
+            <!-- Email Field -->
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address *</label>
+                <InputText 
+                    id="email"
+                    type="email" 
+                    class="form-input" 
+                    @bind-Value="registerRequest.Email" 
+                    placeholder="your.email@example.com"
+                />
+                <ValidationMessage For="@(() => registerRequest.Email)" class="form-error" />
+            </div>
+
+            <!-- Full Name Field -->
+            <div class="form-group">
+                <label for="fullName" class="form-label">Full Name *</label>
+                <InputText 
+                    id="fullName"
+                    class="form-input" 
+                    @bind-Value="registerRequest.FullName" 
+                    placeholder="Enter your full name"
+                />
+                <ValidationMessage For="@(() => registerRequest.FullName)" class="form-error" />
+            </div>
+
+            <!-- Password Field -->
+            <div class="form-group">
+                <label for="password" class="form-label">Password *</label>
+                <InputText 
+                    id="password"
+                    type="password" 
+                    class="form-input" 
+                    @bind-Value="registerRequest.Password" 
+                    placeholder="Create a strong password"
+                />
+                <span class="form-help">At least 8 characters with letters and numbers</span>
+                
+                <!-- Password Strength Indicator -->
+                <div style="margin-top: 0.75rem;">
+                    <div style="display: flex; gap: 0.25rem; margin-bottom: 0.5rem;">
+                        <div class="password-strength-bar" id="strength1" style="height: 4px; flex: 1; background: #e5e7eb; border-radius: 2px; transition: all 0.3s;"></div>
+                        <div class="password-strength-bar" id="strength2" style="height: 4px; flex: 1; background: #e5e7eb; border-radius: 2px; transition: all 0.3s;"></div>
+                        <div class="password-strength-bar" id="strength3" style="height: 4px; flex: 1; background: #e5e7eb; border-radius: 2px; transition: all 0.3s;"></div>
+                        <div class="password-strength-bar" id="strength4" style="height: 4px; flex: 1; background: #e5e7eb; border-radius: 2px; transition: all 0.3s;"></div>
+                    </div>
+                    <span id="strengthText" style="font-size: 0.75rem; color: #6b7280;"></span>
+                </div>
+                <ValidationMessage For="@(() => registerRequest.Password)" class="form-error" />
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="form-group">
+                <label for="confirmPassword" class="form-label">Confirm Password *</label>
+                <InputText 
+                    id="confirmPassword"
+                    type="password" 
+                    class="form-input" 
+                    @bind-Value="confirmPassword" 
+                    placeholder="Re-enter your password"
+                />
+                @if (!string.IsNullOrEmpty(confirmPassword) && registerRequest.Password != confirmPassword)
+                {
+                    <div class="form-error">Passwords do not match</div>
+                }
+            </div>
+
+            <!-- Terms Agreement -->
+            <div class="form-group">
+                <div class="form-check">
+                    <InputCheckbox id="agreeTerms" class="form-check-input" @bind-Value="agreeToTerms" />
+                    <label for="agreeTerms" class="form-check-label">
+                        I agree to the <a href="/terms" class="auth-link">Terms of Service</a> and <a href="/privacy" class="auth-link">Privacy Policy</a>
+                    </label>
+                </div>
+                @if (!agreeToTerms && !string.IsNullOrEmpty(confirmPassword))
+                {
+                    <div class="form-error" style="margin-top: 0.5rem;">You must agree to the terms</div>
+                }
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-block btn-lg" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span class="spinner spinner-sm"></span>
+                    <span>Creating account...</span>
+                }
+                else
+                {
+                    <span>Create Account</span>
+                }
+            </button>
+        </EditForm>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <p style="color: #6b7280; margin: 0;">
+                Already have an account? 
+                <a href="/login" class="auth-link">Sign in here</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@code {
+    private RegisterRequest registerRequest = new();
+    private string confirmPassword = "";
+    private bool agreeToTerms = false;
+    private bool isLoading = false;
+    private string errorMessage = "";
+    private string successMessage = "";
+
+    private async Task HandleRegister()
+    {
+        if (isLoading) return;
+        
+        // Validation
+        if (registerRequest.Password != confirmPassword)
+        {
+            errorMessage = "Passwords do not match";
+            return;
+        }
+        
+        if (!agreeToTerms)
+        {
+            errorMessage = "Please agree to the terms and conditions";
+            return;
+        }
+        
+        isLoading = true;
+        errorMessage = "";
+        successMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var result = await AuthService.RegisterAsync(registerRequest);
+            
+            if (result.IsSuccess)
+            {
+                successMessage = "Account created successfully! Redirecting to login...";
+                
+                // Wait a moment then redirect
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/login", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = result.ErrorMessage ?? "Registration failed. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An error occurred. Please try again.";
+            Console.WriteLine($"Registration error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+}

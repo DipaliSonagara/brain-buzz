@@ -1,10 +1,17 @@
+@using BrainBuzz.web.Models.ViewModels
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Services
+@inject IQuizService QuizService
+@inject SessionService SessionService
+@inject IJSRuntime JSRuntime
+
 <div class="row">
     <div class="col-md-6 col-lg-3 mb-4">
         <div class="stat-card primary">
             <div class="stat-card-body">
                 <div class="stat-card-content">
                     <h5>Total Quizzes</h5>
-                    <h2>0</h2>
+                    <h2>@userStats.TotalQuizzes</h2>
                 </div>
                 <i class="fas fa-question-circle stat-card-icon"></i>
             </div>
@@ -15,7 +22,7 @@
             <div class="stat-card-body">
                 <div class="stat-card-content">
                     <h5>Completed</h5>
-                    <h2>0</h2>
+                    <h2>@userStats.CompletedQuizzes</h2>
                 </div>
                 <i class="fas fa-check-circle stat-card-icon"></i>
             </div>
@@ -26,7 +33,7 @@
             <div class="stat-card-body">
                 <div class="stat-card-content">
                     <h5>Average Score</h5>
-                    <h2>0</h2>
+                    <h2>@userStats.AverageScore%</h2>
                 </div>
                 <i class="fas fa-chart-line stat-card-icon"></i>
             </div>
@@ -37,7 +44,7 @@
             <div class="stat-card-body">
                 <div class="stat-card-content">
                     <h5>Best Score</h5>
-                    <h2>0</h2>
+                    <h2>@userStats.BestScore%</h2>
                 </div>
                 <i class="fas fa-trophy stat-card-icon"></i>
             </div>
@@ -49,26 +56,104 @@
     <div class="col-12">
         <div class="content-card">
             <div class="content-card-header">
-                <h3>Recent Activity</h3>
+                <h3>Recent Quiz Results</h3>
             </div>
             <div class="content-card-body">
-                <div class="list-group-dashboard">
-                    <div class="list-group-item-dashboard">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6></h6>
-                            <small></small>
-                        </div>
-                        <p></p>
+                @if (quizResults == null)
+                {
+                    <div class="text-center">
+                        <div class="spinner"></div>
+                        <p>Loading results...</p>
                     </div>
-                    <div class="list-group-item-dashboard">
-                        <div class="d-flex w-100 justify-content-between">
-                            <h6></h6>
-                            <small></small>
-                        </div>
-                        <p></p>
+                }
+                else if (!quizResults.Any())
+                {
+                    <div class="text-center">
+                        <i class="fas fa-chart-line" style="font-size: 48px; color: #ccc; margin-bottom: 20px;"></i>
+                        <h5>No quiz results yet</h5>
+                        <p>Complete some quizzes to see your results here!</p>
+                        <a href="/quizzes" class="btn-dashboard primary">Take a Quiz</a>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <div class="list-group-dashboard">
+                        @foreach (var result in quizResults.Take(10))
+                        {
+                            <div class="list-group-item-dashboard">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h6>@result.QuizName</h6>
+                                        <p class="mb-1">Score: @result.Score/@result.TotalQuestions (@result.Percentage%)</p>
+                                        <small class="text-muted">Completed: @result.CompletedAtDisplay</small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge @result.GradeColor">@result.Grade</span>
+                                        <br>
+                                        <small class="text-muted">@result.TimeSpentDisplay</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
             </div>
         </div>
     </div>
 </div>
+
+@code {
+    private List<QuizResultViewModel>? quizResults;
+    private UserStats userStats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUserResults();
+    }
+
+    private async Task LoadUserResults()
+    {
+        try
+        {
+            var sessionId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId") ?? string.Empty;
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                var username = SessionService.GetUsername(sessionId);
+                if (!string.IsNullOrEmpty(username))
+                {
+                    quizResults = await QuizService.GetUserQuizResultsAsync(username);
+                    CalculateUserStats();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading user results: {ex.Message}");
+        }
+    }
+
+    private void CalculateUserStats()
+    {
+        if (quizResults == null || !quizResults.Any())
+        {
+            userStats = new UserStats();
+            return;
+        }
+
+        userStats = new UserStats
+        {
+            TotalQuizzes = quizResults.Count,
+            CompletedQuizzes = quizResults.Count,
+            AverageScore = Math.Round(quizResults.Average(r => r.Percentage), 1),
+            BestScore = quizResults.Max(r => r.Percentage)
+        };
+    }
+
+    public class UserStats
+    {
+        public int TotalQuizzes { get; set; }
+        public int CompletedQuizzes { get; set; }
+        public double AverageScore { get; set; }
+        public double BestScore { get; set; }
+    }
+}

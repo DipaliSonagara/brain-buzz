@@ -1,0 +1,282 @@
+@page "/profile"
+@using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Services
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Models.ViewModels
+@inject IQuizService QuizService
+@inject SessionService SessionService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Profile - BrainBuzz</PageTitle>
+
+<!-- Profile Content -->
+<div class="content-container">
+    <div class="space-y-6">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">My Profile</h1>
+        <p class="text-gray-600">Manage your account settings and view your learning progress.</p>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Profile Information -->
+            <div class="lg:col-span-1">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <div class="w-24 h-24 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span class="text-white font-bold text-2xl">@(string.IsNullOrEmpty(currentUser) ? "U" : currentUser.Substring(0, 1).ToUpper())</span>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">@currentUser</h3>
+                        <p class="text-gray-600 mb-4">Learning Enthusiast</p>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Member since:</span>
+                                <span class="font-medium">@memberSince</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Total quizzes:</span>
+                                <span class="font-medium">@totalQuizzesTaken</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Average score:</span>
+                                <span class="font-medium">@averageScore%</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6">
+                            <button class="btn btn-outline btn-block">
+                                <i class="fas fa-edit mr-2"></i>
+                                Edit Profile
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="card mt-6">
+                    <div class="card-header">
+                        <h3 class="card-title">Quick Stats</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>This Week</span>
+                                    <span>@weeklyProgress/5</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary-600 h-2 rounded-full" style="width: @(weeklyProgress * 20)%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Best Score</span>
+                                    <span>@bestScore%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-success h-2 rounded-full" style="width: @bestScore%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Recent Activity -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Recent Activity</h3>
+                    </div>
+                    <div class="card-body">
+                        @if (recentResults?.Any() == true)
+                        {
+                            <div class="space-y-4">
+                                @foreach (var result in recentResults.Take(5))
+                                {
+                                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                                                <span class="text-primary-600">📝</span>
+                                            </div>
+                                            <div>
+                                                <p class="font-medium text-gray-900">@result.QuizName</p>
+                                                <p class="text-sm text-gray-600">Completed on @result.CompletedAtDisplay</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <p class="font-bold text-lg @(result.Percentage >= 80 ? "text-success" : result.Percentage >= 60 ? "text-warning" : "text-error")">
+                                                @result.Percentage.ToString("F0")%
+                                            </p>
+                                            <p class="text-sm text-gray-600">@result.TimeSpentDisplay</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-center py-8">
+                                <div class="text-4xl mb-4">📊</div>
+                                <p class="text-gray-600 mb-4">No recent activity. Start taking quizzes to see your progress here!</p>
+                                <a href="/quizzes" class="btn btn-primary">Browse Quizzes</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Achievement Badges -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Achievements</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center p-4 bg-yellow-50 rounded-lg">
+                                <div class="text-3xl mb-2">🏆</div>
+                                <div class="text-sm font-medium text-gray-900">Quiz Master</div>
+                                <div class="text-xs text-gray-600">@(totalQuizzesTaken >= 10 ? "Earned" : "Locked")</div>
+                            </div>
+                            <div class="text-center p-4 bg-blue-50 rounded-lg">
+                                <div class="text-3xl mb-2">⚡</div>
+                                <div class="text-sm font-medium text-gray-900">Speed Demon</div>
+                                <div class="text-xs text-gray-600">@(averageTimeSpent <= 300 ? "Earned" : "Locked")</div>
+                            </div>
+                            <div class="text-center p-4 bg-green-50 rounded-lg">
+                                <div class="text-3xl mb-2">🎯</div>
+                                <div class="text-sm font-medium text-gray-900">Accuracy Pro</div>
+                                <div class="text-xs text-gray-600">@(averageScore >= 90 ? "Earned" : "Locked")</div>
+                            </div>
+                            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                <div class="text-3xl mb-2">📚</div>
+                                <div class="text-sm font-medium text-gray-900">Knowledge Seeker</div>
+                                <div class="text-xs text-gray-600">@(totalQuizzesTaken >= 5 ? "Earned" : "Locked")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Learning Goals -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Learning Goals</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="space-y-4">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Complete 10 Quizzes</span>
+                                    <span>@totalQuizzesTaken/10</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary-600 h-2 rounded-full" style="width: @(Math.Min(totalQuizzesTaken * 10, 100))%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Achieve 85% Average</span>
+                                    <span>@averageScore%/85%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-success h-2 rounded-full" style="width: @(Math.Min(averageScore * 1.18, 100))%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Quiz This Week</span>
+                                    <span>@weeklyProgress/5</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-warning h-2 rounded-full" style="width: @(weeklyProgress * 20)%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</div>
+
+@code {
+    private string currentUser = "";
+    private int totalQuizzesTaken = 0;
+    private int averageScore = 0;
+    private int bestScore = 0;
+    private int weeklyProgress = 0;
+    private int averageTimeSpent = 0;
+    private string memberSince = "";
+    private List<QuizResultViewModel> recentResults = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfileData();
+    }
+
+    private async Task LoadProfileData()
+    {
+        try
+        {
+            // Get current user from session
+            var sessionId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                currentUser = SessionService.GetUsername(sessionId);
+            }
+            
+            // If no user found, use demo user
+            if (string.IsNullOrEmpty(currentUser))
+            {
+                currentUser = "Demo User";
+            }
+
+            // Load user statistics
+            try
+            {
+                var userResults = await QuizService.GetUserQuizResultsAsync(currentUser);
+                recentResults = userResults.OrderByDescending(r => r.CompletedAt).ToList();
+                
+                totalQuizzesTaken = userResults.Count;
+                averageScore = userResults.Any() ? (int)userResults.Average(r => r.Percentage) : 0;
+                bestScore = userResults.Any() ? (int)userResults.Max(r => r.Percentage) : 0;
+                averageTimeSpent = userResults.Any() ? (int)userResults.Average(r => r.TimeSpent) : 0;
+                
+                // Calculate weekly progress (last 7 days)
+                var weekAgo = DateTime.Now.AddDays(-7);
+                weeklyProgress = userResults.Count(r => r.CompletedAt >= weekAgo);
+                
+                // Set member since date (demo: 30 days ago)
+                memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading profile data: {ex.Message}");
+                // Provide default values
+                totalQuizzesTaken = 0;
+                averageScore = 0;
+                bestScore = 0;
+                weeklyProgress = 0;
+                averageTimeSpent = 0;
+                memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
+                recentResults = new List<QuizResultViewModel>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in LoadProfileData: {ex.Message}");
+            currentUser = "Demo User";
+            totalQuizzesTaken = 0;
+            averageScore = 0;
+            bestScore = 0;
+            weeklyProgress = 0;
+            averageTimeSpent = 0;
+            memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
+            recentResults = new List<QuizResultViewModel>();
+        }
+    }
+}

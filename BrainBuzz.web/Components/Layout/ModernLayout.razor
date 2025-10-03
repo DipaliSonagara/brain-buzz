@@ -1,0 +1,191 @@
+@using BrainBuzz.web.Components.Common
+@using BrainBuzz.web.Services
+@using BrainBuzz.web.Constants
+@inject AuthenticationService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+@if (isLoading)
+{
+    <div class="auth-layout">
+        <div class="auth-card">
+            <div class="auth-body">
+                <div class="flex justify-center">
+                    <div class="loading-spinner"></div>
+                </div>
+                <p class="text-center text-gray-600 mt-4">@LoadingMessage</p>
+            </div>
+        </div>
+    </div>
+}
+else if (isAuthenticated)
+{
+    <div class="dashboard-layout">
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" @onclick="ToggleMobileMenu">
+            <i class="fas fa-bars"></i>
+        </button>
+        
+        <!-- Mobile Overlay -->
+        @if (isMobileMenuOpen)
+        {
+            <div class="mobile-overlay" @onclick="ToggleMobileMenu"></div>
+        }
+        
+        <!-- Sidebar -->
+        <aside class="sidebar @(isMobileMenuOpen ? "open" : "")">
+            <div class="sidebar-header">
+                <a href="/overview" class="sidebar-logo">
+                    <img src="/logo/brain-buzz-logo.png" alt="BrainBuzz" />
+                    <span class="sidebar-logo-text">BrainBuzz</span>
+                </a>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <div class="sidebar-nav-item">
+                    <a href="/overview" class="sidebar-nav-link @(IsActiveRoute("/overview") ? "active" : "")">
+                        <i class="fas fa-home"></i>
+                        <span>Overview</span>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/quizzes" class="sidebar-nav-link @(IsActiveRoute("/quizzes") ? "active" : "")">
+                        <i class="fas fa-question-circle"></i>
+                        <span>Quizzes</span>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/results" class="sidebar-nav-link @(IsActiveRoute("/results") ? "active" : "")">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Results</span>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/profile" class="sidebar-nav-link @(IsActiveRoute("/profile") ? "active" : "")">
+                        <i class="fas fa-user"></i>
+                        <span>Profile</span>
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
+                        <span class="text-white font-semibold text-sm">@(string.IsNullOrEmpty(currentUser) ? "U" : currentUser.Substring(0, 1).ToUpper())</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">@currentUser</p>
+                        <p class="text-xs text-gray-500">Online</p>
+                    </div>
+                </div>
+                <button class="btn btn-outline w-full" @onclick="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="main-header">
+                <div class="main-header-content">
+                    <h1 class="main-header-title">@PageTitle</h1>
+                    <div class="main-header-actions">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-gradient-primary rounded-full flex items-center justify-center">
+                                <span class="text-white font-semibold text-sm">@(currentUser?.Substring(0, 1).ToUpper() ?? "U")</span>
+                            </div>
+                            <span class="text-sm text-gray-600">Welcome, @currentUser!</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <div class="main-body">
+                @if (ChildContentWithUser != null)
+                {
+                    @ChildContentWithUser(currentUser)
+                }
+                else if (ChildContent != null)
+                {
+                    @ChildContent
+                }
+            </div>
+        </main>
+    </div>
+}
+else
+{
+    <!-- Redirect to access denied -->
+    <div style="display: none;"></div>
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment<string>? ChildContentWithUser { get; set; }
+    [Parameter] public string PageTitle { get; set; } = "Dashboard";
+    [Parameter] public string LoadingMessage { get; set; } = AppConstants.UIText.LoadingDashboard;
+    
+    private string currentUser = "";
+    private bool isLoading = true;
+    private bool isAuthenticated = false;
+    private bool isMobileMenuOpen = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Console.WriteLine("ModernLayout: Starting authentication check...");
+            
+            var authResult = await AuthService.CheckAuthenticationAsync();
+            Console.WriteLine($"ModernLayout: Auth result - IsAuthenticated: {authResult.IsAuthenticated}, Username: {authResult.Username}");
+            
+            isAuthenticated = authResult.IsAuthenticated;
+            currentUser = authResult.Username;
+            
+            if (!isAuthenticated)
+            {
+                // For demo purposes, allow access to dashboard without authentication
+                // In production, you would redirect to login
+                Console.WriteLine("ModernLayout: Not authenticated, setting demo user");
+                isAuthenticated = true;
+                currentUser = "Demo User";
+            }
+            
+            isLoading = false;
+            Console.WriteLine("ModernLayout: Authentication check complete, isLoading = false");
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"ModernLayout: Error during authentication: {ex.Message}");
+            // Handle any errors gracefully
+            isLoading = false;
+            isAuthenticated = true; // Allow access for demo
+            currentUser = "Demo User";
+            StateHasChanged();
+        }
+    }
+
+    private void ToggleMobileMenu()
+    {
+        isMobileMenuOpen = !isMobileMenuOpen;
+        StateHasChanged();
+    }
+
+    private bool IsActiveRoute(string route)
+    {
+        var currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        return currentPath.StartsWith(route.TrimStart('/'));
+    }
+
+    private async Task Logout()
+    {
+        // Clear session
+        await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "sessionId");
+        await JSRuntime.InvokeVoidAsync("localStorage.removeItem", "username");
+        
+        // Navigate to home
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+}

@@ -1,245 +1,290 @@
 ﻿@page "/quiz/{quizId:int}"
 @using BrainBuzz.web.Components.Layout
-@using BrainBuzz.web.Data
-@using BrainBuzz.web.Models.DbTable
-@using Microsoft.EntityFrameworkCore
-@inject ApplicationDbContext _context
+@using BrainBuzz.web.Components.Common
+@using BrainBuzz.web.Models.ViewModels
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Services
+@inject IQuizService QuizService
+@inject SessionService SessionService
 @inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
 
 <PageTitle>Quiz - @quiz?.QuizName</PageTitle>
 
-<div class="container-fluid dashboard-container">
-    <div class="row flex-nowrap">
-        <NavMenu></NavMenu>
+<!-- Quiz Content -->
+<div class="content-container">
+    <!-- Quiz Header -->
+    <div class="quiz-header">
+        <div class="quiz-header-content">
+            <div class="quiz-title-section">
+                <h1 class="quiz-title">@quiz?.QuizName</h1>
+                <p class="quiz-subtitle">Test your knowledge and track your progress</p>
+            </div>
+            <button @onclick="GoToDashboard" class="btn btn-outline btn-back">
+                <i class="fas fa-arrow-left"></i>
+                <span>Back to Quizzes</span>
+            </button>
+        </div>
 
-        <!-- Main content -->
-        <div class="col-md-10 col-lg-10">
-            <main class="dashboard-main">
-                <!-- Dashboard Header -->
-                <div class="dashboard-header">
-                    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center">
-                        <h1>@quiz?.QuizName Quiz</h1>
-                        <div class="btn-toolbar">
-                            <div class="btn-group me-2">
-                                <button @onclick="GoToDashboard" class="btn-dashboard secondary">
-                                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+        <!-- Quiz Progress -->
+        @if (!showResults && questions?.Count > 0)
+        {
+            <div class="quiz-progress-card">
+                <div class="quiz-progress-content">
+                    <div class="quiz-progress-info">
+                        <span class="question-counter">Question @(currentQuestionIndex + 1) of @questions.Count</span>
+                        <span class="timer-display" id="timeRemaining">
+                            <i class="fas fa-clock"></i>
+                            @FormatTime(timeRemaining)
+                        </span>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: @((currentQuestionIndex + 1) * 100.0 / questions.Count)%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Quiz Content -->
+    <div class="quiz-content">
+        <ErrorAlert Message="@errorMessage" Type="@errorType" OnDismiss="ClearError" />
+        
+        @if (questions == null)
+        {
+            <div class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">Loading questions...</p>
+            </div>
+        }
+        else if (showResults)
+        {
+            <div class="results-container">
+                <!-- Results Summary -->
+                <div class="results-summary-card">
+                    <div class="results-celebration">
+                        <div class="celebration-icon">🎉</div>
+                        <h2 class="results-title">Quiz Complete!</h2>
+                        <div class="score-circle">
+                            <span class="score-percentage">@(Math.Round((double)finalScore / questions.Count * 100, 1))%</span>
+                        </div>
+                        <p class="score-description">@finalScore out of @questions.Count questions correct</p>
+                        <div class="results-actions">
+                            <button @onclick="RetakeQuiz" class="btn btn-primary btn-retake">
+                                <i class="fas fa-redo"></i>
+                                <span>Retake Quiz</span>
+                            </button>
+                            <button @onclick="GoToDashboard" class="btn btn-outline btn-back-to-quizzes">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Back to Quizzes</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Answer Review -->
+                <div class="answer-review-card">
+                    <div class="card-header">
+                        <h3 class="review-title">Review Your Answers</h3>
+                    </div>
+                    <div class="review-content">
+                        @for (int i = 0; i < questions.Count; i++)
+                        {
+                            var q = questions[i];
+                            var isCorrect = !string.IsNullOrEmpty(userAnswers[i]) && userAnswers[i] == q.CorrectAnswer;
+                            <div class="review-item @(isCorrect ? "correct" : "incorrect")">
+                                <div class="review-header">
+                                    <div class="question-info">
+                                        <span class="question-number">@(i + 1).</span>
+                                        <span class="question-text">@q.QuestionText</span>
+                                    </div>
+                                    <span class="result-icon">@(isCorrect ? "✅" : "❌")</span>
+                                </div>
+                                <div class="answer-options">
+                                    <div class="option @(userAnswers[i] == "A" ? (q.CorrectAnswer == "A" ? "selected correct" : "selected incorrect") : (q.CorrectAnswer == "A" ? "correct-answer" : ""))">
+                                        A. @q.OptionA
+                                    </div>
+                                    <div class="option @(userAnswers[i] == "B" ? (q.CorrectAnswer == "B" ? "selected correct" : "selected incorrect") : (q.CorrectAnswer == "B" ? "correct-answer" : ""))">
+                                        B. @q.OptionB
+                                    </div>
+                                    <div class="option @(userAnswers[i] == "C" ? (q.CorrectAnswer == "C" ? "selected correct" : "selected incorrect") : (q.CorrectAnswer == "C" ? "correct-answer" : ""))">
+                                        C. @q.OptionC
+                                    </div>
+                                    <div class="option @(userAnswers[i] == "D" ? (q.CorrectAnswer == "D" ? "selected correct" : "selected incorrect") : (q.CorrectAnswer == "D" ? "correct-answer" : ""))">
+                                        D. @q.OptionD
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="quiz-main-content">
+            <EditForm OnValidSubmit="SubmitQuiz" Model="questions">
+                <!-- Question Display -->
+                @if (questions.Count > 0 && currentQuestionIndex < questions.Count)
+                {
+                    var currentQuestion = questions[currentQuestionIndex];
+                        <div class="question-container">
+                            <div class="question-card">
+                                <div class="question-header">
+                                    <span class="question-label">Question @(currentQuestionIndex + 1)</span>
+                                    <span class="quiz-category">@quiz?.QuizName</span>
+                                </div>
+                                <h2 class="question-text">@currentQuestion.QuestionText</h2>
+
+                                <div class="answer-options-container">
+                                    <InputRadioGroup @bind-Value="userAnswers[currentQuestionIndex]">
+                                        <div class="answer-option" onclick="selectOption(this)">
+                                            <InputRadio Value="@("A")" class="option-radio" />
+                                            <span class="option-label">A.</span>
+                                            <span class="option-text">@currentQuestion.OptionA</span>
+                                        </div>
+                                        <div class="answer-option" onclick="selectOption(this)">
+                                            <InputRadio Value="@("B")" class="option-radio" />
+                                            <span class="option-label">B.</span>
+                                            <span class="option-text">@currentQuestion.OptionB</span>
+                                        </div>
+                                        <div class="answer-option" onclick="selectOption(this)">
+                                            <InputRadio Value="@("C")" class="option-radio" />
+                                            <span class="option-label">C.</span>
+                                            <span class="option-text">@currentQuestion.OptionC</span>
+                                        </div>
+                                        <div class="answer-option" onclick="selectOption(this)">
+                                            <InputRadio Value="@("D")" class="option-radio" />
+                                            <span class="option-label">D.</span>
+                                            <span class="option-text">@currentQuestion.OptionD</span>
+                                        </div>
+                                    </InputRadioGroup>
+                            </div>
+                        </div>
+
+                        <!-- Navigation Buttons -->
+                            <div class="navigation-buttons">
+                            <button type="button" @onclick="PreviousQuestion"
+                                        class="btn btn-outline btn-nav @(currentQuestionIndex == 0 ? "disabled" : "")"
+                                    disabled="@(currentQuestionIndex == 0)">
+                                    <i class="fas fa-arrow-left"></i>
+                                    <span>Previous</span>
+                            </button>
+
+                            @if (currentQuestionIndex < questions.Count - 1)
+                            {
+                                    <button type="button" @onclick="NextQuestion" class="btn btn-primary btn-nav">
+                                        <span>Next</span>
+                                        <i class="fas fa-arrow-right"></i>
                                 </button>
+                            }
+                            else
+                            {
+                                    <button type="submit" class="btn btn-success btn-nav">
+                                        <i class="fas fa-check"></i>
+                                        <span>Submit Quiz</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            </EditForm>
+
+            <!-- Question Navigator -->
+                <div class="question-navigator-card">
+                    <div class="navigator-header">
+                        <h4 class="navigator-title">Question Navigator</h4>
+                </div>
+                    <div class="navigator-content">
+                        <div class="question-grid">
+                        @for (int i = 0; i < questions.Count; i++)
+                        {
+                            int questionIndex = i;
+                            <button type="button"
+                                    @onclick="() => GoToQuestion(questionIndex)"
+                                        class="question-button @(currentQuestionIndex == i ? "current" : !string.IsNullOrEmpty(userAnswers[i]) ? "answered" : "unanswered")">
+                                @(i + 1)
+                            </button>
+                        }
+                    </div>
+                        <div class="navigator-legend">
+                            <div class="legend-item">
+                                <span class="legend-color current"></span>
+                                <span>Current</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color answered"></span>
+                                <span>Answered</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color unanswered"></span>
+                                <span>Unanswered</span>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Quiz Progress -->
-                    @if (!showResults && questions?.Count > 0)
-                    {
-                        <div class="quiz-progress mt-3">
-                            <div class="progress-info">
-                                <span>Question @(currentQuestionIndex + 1) of @questions.Count</span>
-                                <span class="time-remaining" id="timeRemaining">Time: 15:00</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: @((currentQuestionIndex + 1) * 100.0 / questions.Count)%"></div>
-                            </div>
-                        </div>
-                    }
                 </div>
-
-                <!-- Dashboard Content -->
-                <div class="dashboard-content fade-in">
-                    @if (questions == null)
-                    {
-                        <div class="loading-container">
-                            <div class="content-card">
-                                <div class="content-card-body text-center">
-                                    <div class="spinner"></div>
-                                    <p>Loading questions...</p>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    else if (showResults)
-                    {
-                        <div class="results-container">
-                            <div class="content-card results-card">
-                                <div class="content-card-body text-center">
-                                    <div class="results-icon">🎉</div>
-                                    <h2 class="results-title">Quiz Complete!</h2>
-                                    <div class="score-display">
-                                        <div class="score-circle">
-                                            <span class="score-number">@finalScore</span>
-                                            <span class="score-total">/@questions.Count</span>
-                                        </div>
-                                    </div>
-                                    <p class="score-percentage">@(Math.Round((double)finalScore / questions.Count * 100, 1))% Correct</p>
-                                    <div class="results-actions">
-                                        <button @onclick="RetakeQuiz" class="btn-dashboard primary">Retake Quiz</button>
-                                        <button @onclick="GoToDashboard" class="btn-dashboard secondary">Back to Dashboard</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Answer Review -->
-                            <div class="content-card review-card">
-                                <div class="content-card-header">
-                                    <h3>Review Your Answers</h3>
-                                </div>
-                                <div class="content-card-body">
-                                    @for (int i = 0; i < questions.Count; i++)
-                                    {
-                                        var q = questions[i];
-                                        var isCorrect = !string.IsNullOrEmpty(userAnswers[i]) && userAnswers[i] == q.CorrectOption;
-                                        <div class="review-item @(isCorrect ? "correct" : "incorrect")">
-                                            <div class="review-question">
-                                                <span class="question-number">@(i + 1).</span>
-                                                <span class="question-text">@q.QuestionText</span>
-                                                <span class="result-icon">@(isCorrect ? "✅" : "❌")</span>
-                                            </div>
-                                            <div class="review-answers">
-                                                <div class="answer-option @(userAnswers[i] == "A" ? (q.CorrectOption == "A" ? "selected correct" : "selected incorrect") : (q.CorrectOption == "A" ? "correct-answer" : ""))">
-                                                    A. @q.OptionA
-                                                </div>
-                                                <div class="answer-option @(userAnswers[i] == "B" ? (q.CorrectOption == "B" ? "selected correct" : "selected incorrect") : (q.CorrectOption == "B" ? "correct-answer" : ""))">
-                                                    B. @q.OptionB
-                                                </div>
-                                                <div class="answer-option @(userAnswers[i] == "C" ? (q.CorrectOption == "C" ? "selected correct" : "selected incorrect") : (q.CorrectOption == "C" ? "correct-answer" : ""))">
-                                                    C. @q.OptionC
-                                                </div>
-                                                <div class="answer-option @(userAnswers[i] == "D" ? (q.CorrectOption == "D" ? "selected correct" : "selected incorrect") : (q.CorrectOption == "D" ? "correct-answer" : ""))">
-                                                    D. @q.OptionD
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    }
-                    else
-                    {
-                        <EditForm OnValidSubmit="SubmitQuiz" Model="questions">
-                            <!-- Question Display -->
-                            @if (questions.Count > 0 && currentQuestionIndex < questions.Count)
-                            {
-                                var currentQuestion = questions[currentQuestionIndex];
-                                <div class="question-container fade-in">
-                                    <div class="content-card question-card">
-                                        <div class="content-card-body">
-                                            <div class="question-header">
-                                                <span class="question-number">Question @(currentQuestionIndex + 1)</span>
-                                                <span class="question-category">@quiz?.QuizName</span>
-                                            </div>
-                                            <h2 class="question-text">@currentQuestion.QuestionText</h2>
-
-                                            <div class="options-container">
-                                                <InputRadioGroup @bind-Value="userAnswers[currentQuestionIndex]">
-                                                    <div class="option-item">
-                                                        <label class="option-label">
-                                                            <InputRadio Value="@("A")" class="option-radio" />
-                                                            <span class="option-letter">A</span>
-                                                            <span class="option-text">@currentQuestion.OptionA</span>
-                                                        </label>
-                                                    </div>
-                                                    <div class="option-item">
-                                                        <label class="option-label">
-                                                            <InputRadio Value="@("B")" class="option-radio" />
-                                                            <span class="option-letter">B</span>
-                                                            <span class="option-text">@currentQuestion.OptionB</span>
-                                                        </label>
-                                                    </div>
-                                                    <div class="option-item">
-                                                        <label class="option-label">
-                                                            <InputRadio Value="@("C")" class="option-radio" />
-                                                            <span class="option-letter">C</span>
-                                                            <span class="option-text">@currentQuestion.OptionC</span>
-                                                        </label>
-                                                    </div>
-                                                    <div class="option-item">
-                                                        <label class="option-label">
-                                                            <InputRadio Value="@("D")" class="option-radio" />
-                                                            <span class="option-letter">D</span>
-                                                            <span class="option-text">@currentQuestion.OptionD</span>
-                                                        </label>
-                                                    </div>
-                                                </InputRadioGroup>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Navigation Buttons -->
-                                    <div class="quiz-navigation">
-                                        <div class="nav-buttons">
-                                            <button type="button" @onclick="PreviousQuestion"
-                                                    class="btn-dashboard secondary"
-                                                    disabled="@(currentQuestionIndex == 0)">
-                                                ← Previous
-                                            </button>
-
-                                            @if (currentQuestionIndex < questions.Count - 1)
-                                            {
-                                                <button type="button" @onclick="NextQuestion"
-                                                        class="btn-dashboard primary">
-                                                    Next →
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button type="submit" class="btn-dashboard success">
-                                                    Submit Quiz
-                                                </button>
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </EditForm>
-
-                        <!-- Question Navigator -->
-                        <div class="content-card question-navigator">
-                            <div class="content-card-header">
-                                <h4>Question Navigator</h4>
-                            </div>
-                            <div class="content-card-body">
-                                <div class="navigator-grid">
-                                    @for (int i = 0; i < questions.Count; i++)
-                                    {
-                                        int questionIndex = i;
-                                        <button type="button"
-                                                @onclick="() => GoToQuestion(questionIndex)"
-                                                class="navigator-btn @(currentQuestionIndex == i ? "active" : "") @(!string.IsNullOrEmpty(userAnswers[i]) ? "answered" : "")">
-                                            @(i + 1)
-                                        </button>
-                                    }
-                                </div>
-                                <div class="navigator-legend">
-                                    <span class="legend-item"><span class="legend-color current"></span> Current</span>
-                                    <span class="legend-item"><span class="legend-color answered"></span> Answered</span>
-                                    <span class="legend-item"><span class="legend-color unanswered"></span> Unanswered</span>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </main>
-        </div>
+            </div>
+        }
     </div>
 </div>
 
 @code {
     [Parameter] public int quizId { get; set; }
-    private Quizzes quiz;
-    private List<Questions> questions = new();
+    private QuizViewModel? quiz;
+    private List<QuestionViewModel> questions = new();
     private List<string> userAnswers = new();
     private int currentQuestionIndex = 0;
     private bool showResults = false;
     private int finalScore = 0;
+    private int timeRemaining = 0; // in seconds
+    private DateTime quizStartTime;
+    private string currentUsername = string.Empty;
+    private bool isTimerRunning = false;
+    private string errorMessage = string.Empty;
+    private ErrorAlert.AlertType errorType = ErrorAlert.AlertType.Error;
 
     protected override async Task OnInitializedAsync()
     {
-        quiz = await _context.Quizzes.FindAsync(quizId);
-        questions = await _context.Questions
-            .Where(q => q.QuizId == quizId)
-            .ToListAsync();
-        userAnswers = new List<string>(new string[questions.Count]);
+        try
+        {
+            quiz = await QuizService.GetQuizByIdAsync(quizId);
+            if (quiz == null)
+            {
+                ShowError("Quiz not found. Please check the quiz ID and try again.", ErrorAlert.AlertType.Error);
+                return;
+            }
+
+            questions = await QuizService.GetQuizQuestionsAsync(quizId);
+            if (questions == null || !questions.Any())
+            {
+                ShowError("No questions found for this quiz. Please try another quiz.", ErrorAlert.AlertType.Warning);
+                return;
+            }
+
+            userAnswers = new List<string>(new string[questions.Count]);
+            
+            // Initialize timer
+            timeRemaining = quiz.TimeLimit * 60; // Convert minutes to seconds
+            quizStartTime = DateTime.Now;
+            
+            // Get current username from session
+            await GetCurrentUsername();
+        }
+        catch (Exception ex)
+        {
+            ShowError($"An error occurred while loading the quiz: {ex.Message}", ErrorAlert.AlertType.Error);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !showResults && timeRemaining > 0)
+        {
+            await StartTimer();
+        }
     }
 
     private void NextQuestion()
@@ -268,20 +313,46 @@
 
     private async Task SubmitQuiz()
     {
+        // Stop the timer
+        isTimerRunning = false;
+        
+        // Calculate final score
         finalScore = 0;
         for (int i = 0; i < questions.Count; i++)
         {
             var selected = userAnswers[i];
-            var correct = questions[i].CorrectOption;
+            var correct = questions[i].CorrectAnswer;
             if (!string.IsNullOrEmpty(selected) && selected == correct)
             {
                 finalScore++;
             }
         }
+        
+        // Calculate time spent
+        var timeSpent = (int)(DateTime.Now - quizStartTime).TotalSeconds;
+        
+        // Create quiz result
+        var quizResult = new QuizResultViewModel
+        {
+            QuizId = quizId,
+            Username = currentUsername,
+            Score = finalScore,
+            TotalQuestions = questions.Count,
+            Percentage = Math.Round((double)finalScore / questions.Count * 100, 2),
+            CompletedAt = DateTime.Now,
+            TimeSpent = timeSpent,
+            UserAnswers = System.Text.Json.JsonSerializer.Serialize(userAnswers)
+        };
+        
+        // Save the result
+        var saved = await QuizService.SaveQuizResultAsync(quizResult);
+        if (!saved)
+        {
+            ShowError("Failed to save your quiz result. Your score has been calculated but may not be saved.", ErrorAlert.AlertType.Warning);
+        }
+        
         showResults = true;
         StateHasChanged();
-        Console.WriteLine($"User scored: {finalScore}");
-        await Task.CompletedTask;
     }
 
     private void RetakeQuiz()
@@ -295,7 +366,713 @@
 
     private void GoToDashboard()
     {
-        Navigation.NavigateTo("/dashboard/quizzes");
+        Navigation.NavigateTo("/quizzes");
+        StateHasChanged();
+    }
+
+    private async Task GetCurrentUsername()
+    {
+        try
+        {
+            var sessionId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId") ?? string.Empty;
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                currentUsername = SessionService.GetUsername(sessionId) ?? string.Empty;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error getting username: {ex.Message}");
+            currentUsername = "Guest";
+        }
+    }
+
+    private async Task StartTimer()
+    {
+        isTimerRunning = true;
+        while (isTimerRunning && timeRemaining > 0 && !showResults)
+        {
+            await Task.Delay(1000); // Wait 1 second
+            if (isTimerRunning)
+            {
+                timeRemaining--;
+                StateHasChanged();
+                
+                // Auto-submit when time runs out
+                if (timeRemaining <= 0)
+                {
+                    await SubmitQuiz();
+                }
+            }
+        }
+    }
+
+    private string FormatTime(int seconds)
+    {
+        var minutes = seconds / 60;
+        var remainingSeconds = seconds % 60;
+        return $"{minutes}:{remainingSeconds:D2}";
+    }
+
+    private void ShowError(string message, ErrorAlert.AlertType type)
+    {
+        errorMessage = message;
+        errorType = type;
+        StateHasChanged();
+    }
+
+    private void ClearError()
+    {
+        errorMessage = string.Empty;
         StateHasChanged();
     }
 }
+
+<style>
+    /* Quiz Container */
+    .quiz-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 2rem;
+    }
+
+    /* Quiz Header */
+    .quiz-header {
+        margin-bottom: 2rem;
+    }
+
+    .quiz-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+
+    .quiz-title-section h1 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .quiz-subtitle {
+        color: #718096;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .btn-back {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: 2px solid #e2e8f0;
+        background: white;
+        color: #4a5568;
+        border-radius: 12px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+        border-color: #4299e1;
+        color: #4299e1;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(66, 153, 225, 0.15);
+    }
+
+    /* Progress Card */
+    .quiz-progress-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        border: 1px solid #e2e8f0;
+    }
+
+    .quiz-progress-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .question-counter {
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 1rem;
+    }
+
+    .timer-display {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+        color: #e53e3e;
+        font-size: 1rem;
+    }
+
+    .progress-bar-container {
+        width: 100%;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background-color: #e2e8f0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4299e1, #3182ce);
+        border-radius: 4px;
+        transition: width 0.3s ease;
+    }
+
+    /* Quiz Content */
+    .quiz-content {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Loading State */
+    .loading-container {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+
+    .loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #e2e8f0;
+        border-top: 4px solid #4299e1;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 1rem;
+    }
+
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+        color: #718096;
+        font-size: 1.1rem;
+    }
+
+    /* Results Container */
+    .results-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .results-summary-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        padding: 3rem;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    }
+
+    .results-celebration {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .celebration-icon {
+        font-size: 4rem;
+        margin-bottom: 1rem;
+    }
+
+    .results-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 2rem;
+    }
+
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        background: linear-gradient(135deg, #4299e1, #3182ce);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem;
+        box-shadow: 0 8px 25px rgba(66, 153, 225, 0.3);
+    }
+
+    .score-percentage {
+        color: white;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .score-description {
+        font-size: 1.2rem;
+        color: #718096;
+        margin-bottom: 2rem;
+    }
+
+    .results-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-retake, .btn-back-to-quizzes {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-retake {
+        background: linear-gradient(135deg, #48bb78, #38a169);
+        color: white;
+        border: none;
+    }
+
+    .btn-retake:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(72, 187, 120, 0.3);
+    }
+
+    .btn-back-to-quizzes {
+        background: white;
+        border: 2px solid #e2e8f0;
+        color: #4a5568;
+    }
+
+    .btn-back-to-quizzes:hover {
+        border-color: #4299e1;
+        color: #4299e1;
+        transform: translateY(-2px);
+    }
+
+    /* Answer Review */
+    .answer-review-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .card-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f7fafc;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .review-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin: 0;
+    }
+
+    .review-content {
+        padding: 2rem;
+    }
+
+    .review-item {
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        border: 2px solid;
+    }
+
+    .review-item.correct {
+        border-color: #48bb78;
+        background: #f0fff4;
+    }
+
+    .review-item.incorrect {
+        border-color: #f56565;
+        background: #fff5f5;
+    }
+
+    .review-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+    }
+
+    .question-info {
+        display: flex;
+        gap: 0.5rem;
+        flex: 1;
+    }
+
+    .question-number {
+        font-weight: 600;
+        color: #4a5568;
+    }
+
+    .question-text {
+        color: #2d3748;
+        line-height: 1.5;
+    }
+
+    .result-icon {
+        font-size: 1.5rem;
+        margin-left: 1rem;
+    }
+
+    .answer-options {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .option {
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+    }
+
+    .option.selected.correct {
+        background: #48bb78;
+        color: white;
+    }
+
+    .option.selected.incorrect {
+        background: #f56565;
+        color: white;
+    }
+
+    .option.correct-answer {
+        background: #c6f6d5;
+        color: #22543d;
+        border: 1px solid #48bb78;
+    }
+
+    .option:not(.selected):not(.correct-answer) {
+        background: #f7fafc;
+        color: #718096;
+    }
+
+    /* Quiz Main Content */
+    .quiz-main-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .question-container {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+    }
+
+    .question-card {
+        padding: 2.5rem;
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .question-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .quiz-category {
+        background: linear-gradient(135deg, #4299e1, #3182ce);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .question-text {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #2d3748;
+        line-height: 1.4;
+        margin-bottom: 2rem;
+    }
+
+    .answer-options-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .answer-option {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1.25rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: white;
+    }
+
+    .answer-option:hover {
+        border-color: #4299e1;
+        background: #f7fafc;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(66, 153, 225, 0.15);
+    }
+
+    .answer-option:has(input:checked) {
+        border-color: #4299e1;
+        background: #ebf8ff;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    }
+
+    .option-radio {
+        width: 20px;
+        height: 20px;
+    }
+
+    .option-label {
+        font-weight: 600;
+        color: #4299e1;
+        min-width: 2rem;
+    }
+
+    .option-text {
+        color: #2d3748;
+        font-weight: 500;
+        line-height: 1.5;
+    }
+
+    /* Navigation Buttons */
+    .navigation-buttons {
+        display: flex;
+        justify-content: space-between;
+        padding: 2rem 2.5rem;
+        background: #f7fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .btn-nav {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.875rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-nav.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .btn-nav:not(.disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Question Navigator */
+    .question-navigator-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e2e8f0;
+    }
+
+    .navigator-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid #e2e8f0;
+        background: #f7fafc;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .navigator-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin: 0;
+    }
+
+    .navigator-content {
+        padding: 2rem;
+    }
+
+    .question-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(50px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .question-button {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        border: 2px solid;
+        cursor: pointer;
+    }
+
+    .question-button.current {
+        background: #4299e1;
+        color: white;
+        border-color: #4299e1;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+    }
+
+    .question-button.answered {
+        background: #c6f6d5;
+        color: #22543d;
+        border-color: #48bb78;
+    }
+
+    .question-button.answered:hover {
+        background: #9ae6b4;
+        transform: translateY(-2px);
+    }
+
+    .question-button.unanswered {
+        background: #f7fafc;
+        color: #718096;
+        border-color: #e2e8f0;
+    }
+
+    .question-button.unanswered:hover {
+        background: #edf2f7;
+        border-color: #cbd5e0;
+        color: #4a5568;
+    }
+
+    .navigator-legend {
+        display: flex;
+        gap: 2rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: #718096;
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 2px solid;
+    }
+
+    .legend-color.current {
+        background: #4299e1;
+        border-color: #4299e1;
+    }
+
+    .legend-color.answered {
+        background: #c6f6d5;
+        border-color: #48bb78;
+    }
+
+    .legend-color.unanswered {
+        background: #f7fafc;
+        border-color: #e2e8f0;
+    }
+
+    /* Responsive Design */
+    @@media (max-width: 768px) {
+        .quiz-container {
+            padding: 1rem;
+        }
+
+        .quiz-header-content {
+            flex-direction: column;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .quiz-title {
+            font-size: 2rem;
+        }
+
+        .question-card {
+            padding: 1.5rem;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+        }
+
+        .navigation-buttons {
+            padding: 1.5rem;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .results-summary-card {
+            padding: 2rem;
+        }
+
+        .results-title {
+            font-size: 2rem;
+        }
+
+        .score-circle {
+            width: 100px;
+            height: 100px;
+        }
+
+        .score-percentage {
+            font-size: 1.75rem;
+        }
+
+        .navigator-legend {
+            gap: 1rem;
+        }
+    }
+</style>
+
+<script>
+    function selectOption(element) {
+        // Remove selected state from siblings
+        const siblings = element.parentNode.querySelectorAll('.answer-option');
+        siblings.forEach(sibling => {
+            sibling.classList.remove('selected');
+        });
+        
+        // Add selected state to clicked element
+        element.classList.add('selected');
+        
+        // Trigger the radio button
+        const radio = element.querySelector('input[type="radio"]');
+        if (radio) {
+            radio.checked = true;
+            radio.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+    }
+</script>

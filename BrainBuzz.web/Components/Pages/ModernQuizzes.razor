@@ -1,0 +1,278 @@
+@page "/quizzes"
+@using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Models.ViewModels
+@inject IQuizService QuizService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Quizzes - BrainBuzz</PageTitle>
+
+<!-- Quizzes Content -->
+<div class="content-container">
+     <div class="space-y-6">
+          <div class="mb-8">
+               <h1 class="text-3xl font-bold text-gray-900 mb-2">Available Quizzes</h1>
+               <p class="text-gray-600">Choose a quiz to test your knowledge and track your progress.</p>
+          </div>
+
+          <div class="space-y-6">
+               @if (quizzes == null)
+               {
+                    <div class="text-center py-12">
+                         <div class="loading-spinner"></div>
+                         <p class="text-gray-600 mt-4">Loading quizzes...</p>
+                    </div>
+               }
+               else if (!quizzes.Any())
+               {
+                    <div class="text-center py-12">
+                         <div class="text-6xl mb-4">📚</div>
+                         <h3 class="text-xl font-semibold text-gray-900 mb-2">No Quizzes Available</h3>
+                         <p class="text-gray-600">Check back later for new quizzes to test your knowledge.</p>
+                    </div>
+               }
+               else
+               {
+                    <!-- Filter and Search -->
+                    <div class="card mb-6">
+                         <div class="card-body">
+                              <div class="flex flex-col md:flex-row gap-4">
+                                   <div class="flex-1">
+                                        <input type="text"
+                                               @bind="searchTerm"
+                                               @oninput="FilterQuizzes"
+                                               placeholder="Search quizzes..."
+                                               class="form-input" />
+                                   </div>
+                                   <div class="flex gap-2">
+                                        <select @onchange="OnCategoryChanged" class="form-input">
+                                             <option value="">All Categories</option>
+                                             <option value="General Knowledge" selected="@(selectedCategory == "General Knowledge")">General Knowledge</option>
+                                             <option value="Science" selected="@(selectedCategory == "Science")">Science</option>
+                                             <option value="Technology" selected="@(selectedCategory == "Technology")">Technology</option>
+                                             <option value="History" selected="@(selectedCategory == "History")">History</option>
+                                             <option value="Mathematics" selected="@(selectedCategory == "Mathematics")">Mathematics</option>
+                                        </select>
+                                        <select @onchange="OnDifficultyChanged" class="form-input">
+                                             <option value="">All Levels</option>
+                                             <option value="Easy" selected="@(selectedDifficulty == "Easy")">Easy</option>
+                                             <option value="Medium" selected="@(selectedDifficulty == "Medium")">Medium</option>
+                                             <option value="Hard" selected="@(selectedDifficulty == "Hard")">Hard</option>
+                                        </select>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+
+                    <!-- Quizzes Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                         @foreach (var quiz in filteredQuizzes)
+                         {
+                              <div class="card hover:shadow-lg transition-all duration-300">
+                                   <div class="card-body">
+                                        <div class="flex items-start justify-between mb-4">
+                                             <div class="flex-1">
+                                                  <h3 class="text-lg font-semibold text-gray-900 mb-2">@quiz.QuizName</h3>
+                                                  <p class="text-sm text-gray-600 mb-3">@quiz.Description</p>
+                                             </div>
+                                             <span class="badge @GetDifficultyBadgeClass(quiz.Difficulty)">@quiz.Difficulty</span>
+                                        </div>
+
+                                        <div class="space-y-2 mb-4">
+                                             <div class="flex items-center text-sm text-gray-600">
+                                                  <i class="fas fa-question-circle w-4 h-4 mr-2"></i>
+                                                  <span>@quiz.TotalQuestions questions</span>
+                                             </div>
+                                             <div class="flex items-center text-sm text-gray-600">
+                                                  <i class="fas fa-clock w-4 h-4 mr-2"></i>
+                                                  <span>@quiz.TimeLimit minutes</span>
+                                             </div>
+                                             <div class="flex items-center text-sm text-gray-600">
+                                                  <i class="fas fa-tag w-4 h-4 mr-2"></i>
+                                                  <span>@quiz.Category</span>
+                                             </div>
+                                        </div>
+
+                                        <div class="flex gap-2">
+                                             <a href="/quiz/@(quiz?.QuizId ?? 0)" class="btn btn-primary flex-1">
+                                                  <i class="fas fa-play mr-2"></i>
+                                                  Start Quiz
+                                             </a>
+                                             <button @onclick="() => ShowQuizDetails(quiz)" class="btn btn-outline">
+                                                  <i class="fas fa-info-circle"></i>
+                                             </button>
+                                        </div>
+                                   </div>
+                              </div>
+                         }
+                    </div>
+
+                    @if (!filteredQuizzes.Any() && (quizzes.Any()))
+                    {
+                         <div class="text-center py-12">
+                              <div class="text-6xl mb-4">🔍</div>
+                              <h3 class="text-xl font-semibold text-gray-900 mb-2">No Quizzes Found</h3>
+                              <p class="text-gray-600">Try adjusting your search criteria or filters.</p>
+                              <button @onclick="ClearFilters" class="btn btn-outline mt-4">Clear Filters</button>
+                         </div>
+                    }
+               }
+          </div>
+     </div>
+
+     <!-- Quiz Details Modal -->
+     @if (showModal && selectedQuiz != null)
+     {
+          <div class="modal-overlay" @onclick="CloseModal">
+               <div class="modal-content" @onclick:stopPropagation="true">
+                    <div class="modal-header">
+                         <h3 class="modal-title">@selectedQuiz.QuizName</h3>
+                         <button @onclick="CloseModal" class="modal-close">
+                              <i class="fas fa-times"></i>
+                         </button>
+                    </div>
+                    <div class="modal-body">
+                         <div class="space-y-4">
+                              <div>
+                                   <h4 class="font-semibold text-gray-900 mb-2">Description</h4>
+                                   <p class="text-gray-600">@selectedQuiz.Description</p>
+                              </div>
+                              <div class="grid grid-cols-2 gap-4">
+                                   <div>
+                                        <h4 class="font-semibold text-gray-900 mb-2">Details</h4>
+                                        <div class="space-y-2 text-sm">
+                                             <div class="flex justify-between">
+                                                  <span class="text-gray-600">Questions:</span>
+                                                  <span class="font-medium">@selectedQuiz.TotalQuestions</span>
+                                             </div>
+                                             <div class="flex justify-between">
+                                                  <span class="text-gray-600">Time Limit:</span>
+                                                  <span class="font-medium">@selectedQuiz.TimeLimit min</span>
+                                             </div>
+                                             <div class="flex justify-between">
+                                                  <span class="text-gray-600">Category:</span>
+                                                  <span class="font-medium">@selectedQuiz.Category</span>
+                                             </div>
+                                             <div class="flex justify-between">
+                                                  <span class="text-gray-600">Difficulty:</span>
+                                                  <span class="font-medium">@selectedQuiz.Difficulty</span>
+                                             </div>
+                                        </div>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+                    <div class="modal-footer">
+                         <button @onclick="CloseModal" class="btn btn-outline">Close</button>
+                         <a href="/quiz/@selectedQuiz.QuizId" class="btn btn-primary">
+                              <i class="fas fa-play mr-2"></i>
+                              Start Quiz
+                         </a>
+                    </div>
+               </div>
+          </div>
+     }
+</div>
+
+@code {
+     private List<QuizViewModel>? quizzes;
+     private List<QuizViewModel> filteredQuizzes = new();
+     private string searchTerm = "";
+     private string selectedCategory = "";
+     private string selectedDifficulty = "";
+     private bool showModal = false;
+     private QuizViewModel? selectedQuiz;
+
+     protected override async Task OnInitializedAsync()
+     {
+          await LoadQuizzes();
+     }
+
+     private async Task LoadQuizzes()
+     {
+          try
+          {
+               Console.WriteLine("ModernQuizzes: Loading quizzes...");
+               quizzes = await QuizService.GetAllQuizzesAsync();
+               Console.WriteLine($"ModernQuizzes: Loaded {quizzes?.Count ?? 0} quizzes");
+
+               if (quizzes != null)
+               {
+                    foreach (var quiz in quizzes)
+                    {
+                         Console.WriteLine($"Quiz: {quiz.QuizName}, ID: {quiz.QuizId}, Questions: {quiz.TotalQuestions}");
+                    }
+               }
+
+               filteredQuizzes = quizzes?.ToList() ?? new List<QuizViewModel>();
+          }
+          catch (Exception ex)
+          {
+               Console.WriteLine($"Error loading quizzes: {ex.Message}");
+               quizzes = new List<QuizViewModel>();
+               filteredQuizzes = new List<QuizViewModel>();
+          }
+     }
+
+     private void FilterQuizzes()
+     {
+          if (quizzes == null)
+          {
+               filteredQuizzes = new List<QuizViewModel>();
+               return;
+          }
+
+          filteredQuizzes = quizzes.Where(quiz =>
+              (string.IsNullOrEmpty(searchTerm) ||
+               quiz.QuizName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+               quiz.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+              (string.IsNullOrEmpty(selectedCategory) || quiz.Category == selectedCategory) &&
+              (string.IsNullOrEmpty(selectedDifficulty) || quiz.Difficulty == selectedDifficulty)
+          ).ToList();
+     }
+
+     private void ClearFilters()
+     {
+          searchTerm = "";
+          selectedCategory = "";
+          selectedDifficulty = "";
+          FilterQuizzes();
+     }
+
+     private void OnCategoryChanged(ChangeEventArgs e)
+     {
+          selectedCategory = e.Value?.ToString() ?? "";
+          FilterQuizzes();
+     }
+
+     private void OnDifficultyChanged(ChangeEventArgs e)
+     {
+          selectedDifficulty = e.Value?.ToString() ?? "";
+          FilterQuizzes();
+     }
+
+     private void ShowQuizDetails(QuizViewModel quiz)
+     {
+          selectedQuiz = quiz;
+          showModal = true;
+     }
+
+     private void CloseModal()
+     {
+          showModal = false;
+          selectedQuiz = null;
+     }
+
+     private string GetDifficultyBadgeClass(string difficulty)
+     {
+          return difficulty switch
+          {
+               "Easy" => "badge-success",
+               "Medium" => "badge-warning",
+               "Hard" => "badge-error",
+               _ => "badge-primary"
+          };
+     }
+}

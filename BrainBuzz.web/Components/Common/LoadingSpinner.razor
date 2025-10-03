@@ -1,0 +1,12 @@
+@* Common loading spinner component *@
+
+<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <span class="ms-2">@Message</span>
+</div>
+
+@code {
+    [Parameter] public string Message { get; set; } = "Loading...";
+}

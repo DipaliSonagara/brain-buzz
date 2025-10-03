@@ -1,0 +1,802 @@
+@page "/overview"
+@using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Services
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Models.ViewModels
+@inject IQuizService QuizService
+@inject SessionService SessionService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard - BrainBuzz</PageTitle>
+
+<!-- Clean Dashboard Layout -->
+<div class="content-container">
+    <!-- Welcome Hero Section -->
+    <section class="welcome-hero">
+        <div class="welcome-content">
+            <div class="welcome-text">
+                <h1 class="welcome-title">Welcome back, @currentUser!</h1>
+                <p class="welcome-subtitle">Ready to continue your learning journey? Let's see how you're doing.</p>
+            </div>
+            <div class="welcome-avatar">
+                <div class="avatar-circle">
+                    <span class="avatar-initial">@(string.IsNullOrEmpty(currentUser) ? "U" : currentUser.Substring(0, 1).ToUpper())</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Statistics Overview -->
+    <section class="stats-overview">
+        <div class="stats-grid">
+            <div class="stat-item stat-primary">
+                <div class="stat-icon">
+                    <i class="fas fa-question-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number">@totalQuizzes</div>
+                    <div class="stat-label">Total Quizzes</div>
+                    <div class="stat-description">Available to take</div>
+                </div>
+            </div>
+
+            <div class="stat-item stat-success">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number">@completedQuizzes</div>
+                    <div class="stat-label">Completed</div>
+                    <div class="stat-description">This month</div>
+                </div>
+            </div>
+
+            <div class="stat-item stat-warning">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number">@averageScore%</div>
+                    <div class="stat-label">Average Score</div>
+                    <div class="stat-description">@(averageScore >= 80 ? "Excellent!" : averageScore >= 60 ? "Good job!" : "Keep improving!")</div>
+                </div>
+            </div>
+
+            <div class="stat-item stat-info">
+                <div class="stat-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-number">@bestScore%</div>
+                    <div class="stat-label">Best Score</div>
+                    <div class="stat-description">Personal best</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Grid -->
+    <section class="main-grid">
+        <!-- Recent Activity -->
+        <div class="content-card recent-activity">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-history"></i>
+                    Recent Activity
+                </h3>
+                <a href="/results" class="view-all-link">View All</a>
+            </div>
+            <div class="card-content">
+                @if (recentResults?.Any() == true)
+                {
+                    <div class="activity-list">
+                        @foreach (var result in recentResults.Take(5))
+                        {
+                            <div class="activity-item">
+                                <div class="activity-icon @(result.Percentage >= 80 ? "success" : result.Percentage >= 60 ? "warning" : "error")">
+                                    <i class="fas fa-@(result.Percentage >= 80 ? "check" : result.Percentage >= 60 ? "exclamation" : "times")"></i>
+                                </div>
+                                <div class="activity-details">
+                                    <div class="activity-title">@result.QuizName</div>
+                                    <div class="activity-meta">
+                                        <span class="activity-date">@result.CompletedAtDisplay</span>
+                                        <span class="activity-time">@result.TimeSpentDisplay</span>
+                                    </div>
+                                </div>
+                                <div class="activity-score @(result.Percentage >= 80 ? "score-success" : result.Percentage >= 60 ? "score-warning" : "score-error")">
+                                    @result.Percentage%
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <p>No recent activity</p>
+                        <small>Start taking quizzes to see your progress here!</small>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="content-card quick-actions">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-bolt"></i>
+                    Quick Actions
+                </h3>
+            </div>
+            <div class="card-content">
+                <div class="action-buttons">
+                    <a href="/quizzes" class="action-btn action-primary">
+                        <i class="fas fa-play"></i>
+                        <span>Start New Quiz</span>
+                    </a>
+                    <a href="/results" class="action-btn action-secondary">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>View Results</span>
+                    </a>
+                    <a href="/profile" class="action-btn action-outline">
+                        <i class="fas fa-user"></i>
+                        <span>Update Profile</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learning Goals -->
+        <div class="content-card learning-goals">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-target"></i>
+                    Learning Goals
+                </h3>
+            </div>
+            <div class="card-content">
+                <div class="goals-list">
+                    <div class="goal-item">
+                        <div class="goal-info">
+                            <div class="goal-title">Quizzes This Week</div>
+                            <div class="goal-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: @(Math.Min(weeklyProgress * 20, 100))%"></div>
+                                </div>
+                                <span class="progress-text">@weeklyProgress/5</span>
+                            </div>
+                        </div>
+                        <div class="goal-icon">
+                            <i class="fas fa-calendar-week"></i>
+                        </div>
+                    </div>
+
+                    <div class="goal-item">
+                        <div class="goal-info">
+                            <div class="goal-title">Average Score Goal</div>
+                            <div class="goal-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: @(Math.Min(averageScore * 1.25, 100))%"></div>
+                                </div>
+                                <span class="progress-text">@averageScore%/80%</span>
+                            </div>
+                        </div>
+                        <div class="goal-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="content-card achievements">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-medal"></i>
+                    Achievements
+                </h3>
+            </div>
+            <div class="card-content">
+                <div class="achievements-grid">
+                    <div class="achievement-item @(completedQuizzes >= 5 ? "unlocked" : "locked")">
+                        <div class="achievement-icon">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">Quiz Master</div>
+                            <div class="achievement-desc">Complete 5 quizzes</div>
+                        </div>
+                    </div>
+
+                    <div class="achievement-item @(bestScore >= 90 ? "unlocked" : "locked")">
+                        <div class="achievement-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="achievement-info">
+                            <div class="achievement-title">Speed Demon</div>
+                            <div class="achievement-desc">Score 90% or higher</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+/* ============================================
+   CLEAN DASHBOARD STYLES - NO CONFLICTS
+   ============================================ */
+
+.dashboard-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    background: #f8fafc;
+    min-height: 100vh;
+}
+
+/* Welcome Hero Section */
+.welcome-hero {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 1rem;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.welcome-hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 200px;
+    height: 200px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.welcome-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    z-index: 1;
+}
+
+.welcome-text {
+    flex: 1;
+}
+
+.welcome-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+.welcome-subtitle {
+    font-size: 1.125rem;
+    margin: 0;
+    opacity: 0.9;
+    line-height: 1.5;
+}
+
+.welcome-avatar {
+    margin-left: 2rem;
+}
+
+.avatar-circle {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-initial {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+}
+
+/* Statistics Overview */
+.stats-overview {
+    margin-bottom: 2rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-item {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.stat-primary .stat-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.stat-success .stat-icon {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.stat-warning .stat-icon {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.stat-info .stat-icon {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.stat-info {
+    flex: 1;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+.stat-description {
+    font-size: 0.75rem;
+    color: #9ca3af;
+}
+
+/* Main Content Grid */
+.main-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.content-card {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-title i {
+    color: #6b7280;
+}
+
+.view-all-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.view-all-link:hover {
+    text-decoration: underline;
+}
+
+.card-content {
+    padding: 1.5rem;
+}
+
+/* Recent Activity */
+.recent-activity {
+    grid-row: span 2;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.activity-icon.success {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.activity-icon.warning {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.activity-icon.error {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.activity-details {
+    flex: 1;
+}
+
+.activity-title {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.activity-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+.activity-score {
+    font-weight: 700;
+    font-size: 1.125rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.score-success {
+    color: #059669;
+    background: #d1fae5;
+}
+
+.score-warning {
+    color: #d97706;
+    background: #fef3c7;
+}
+
+.score-error {
+    color: #dc2626;
+    background: #fee2e2;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.empty-state small {
+    font-size: 0.875rem;
+}
+
+/* Quick Actions */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.action-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.action-primary {
+    background: #3b82f6;
+    color: white;
+}
+
+.action-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+}
+
+.action-secondary {
+    background: #10b981;
+    color: white;
+}
+
+.action-secondary:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.action-outline {
+    background: transparent;
+    color: #6b7280;
+    border-color: #d1d5db;
+}
+
+.action-outline:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+    color: #374151;
+}
+
+/* Learning Goals */
+.goals-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.goal-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.goal-info {
+    flex: 1;
+}
+
+.goal-title {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.goal-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.progress-bar {
+    flex: 1;
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #3b82f6;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #6b7280;
+    min-width: 60px;
+    text-align: right;
+}
+
+.goal-icon {
+    width: 40px;
+    height: 40px;
+    background: #f3f4f6;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280;
+}
+
+/* Achievements */
+.achievements-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+}
+
+.achievement-item.unlocked {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+
+.achievement-item.locked {
+    background: #f9fafb;
+    opacity: 0.6;
+}
+
+.achievement-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.achievement-item.unlocked .achievement-icon {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.achievement-item.locked .achievement-icon {
+    background: #f3f4f6;
+    color: #9ca3af;
+}
+
+.achievement-info {
+    flex: 1;
+}
+
+.achievement-title {
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.achievement-desc {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* Responsive Design */
+
+</style>
+
+@code {
+    private string currentUser = "";
+    private int totalQuizzes = 0;
+    private int completedQuizzes = 0;
+    private int averageScore = 0;
+    private int bestScore = 0;
+    private int weeklyProgress = 0;
+    private List<QuizResultViewModel> recentResults = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Get current user from session
+            var sessionId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
+            if (!string.IsNullOrEmpty(sessionId))
+            {
+                currentUser = SessionService.GetUsername(sessionId);
+            }
+            
+            // If no user found, use demo user
+            if (string.IsNullOrEmpty(currentUser))
+            {
+                currentUser = "Demo User";
+            }
+
+            // Load user statistics
+            try
+            {
+                var userResults = await QuizService.GetUserQuizResultsAsync(currentUser);
+                recentResults = userResults.OrderByDescending(r => r.CompletedAt).ToList();
+                
+                var allQuizzes = await QuizService.GetAllQuizzesAsync();
+                totalQuizzes = allQuizzes.Count;
+                completedQuizzes = userResults.Count;
+                averageScore = userResults.Any() ? (int)userResults.Average(r => r.Percentage) : 0;
+                bestScore = userResults.Any() ? (int)userResults.Max(r => r.Percentage) : 0;
+                
+                // Calculate weekly progress (last 7 days)
+                var weekAgo = DateTime.Now.AddDays(-7);
+                weeklyProgress = userResults.Count(r => r.CompletedAt >= weekAgo);
+            }
+            catch (Exception ex)
+            {
+                // If there's an error loading data, provide default values
+                Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+                totalQuizzes = 5; // Default number of quizzes
+                completedQuizzes = 0;
+                averageScore = 0;
+                bestScore = 0;
+                weeklyProgress = 0;
+                recentResults = new List<QuizResultViewModel>();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in OnInitializedAsync: {ex.Message}");
+            // Provide default values
+            currentUser = "Demo User";
+            totalQuizzes = 5;
+            completedQuizzes = 0;
+            averageScore = 0;
+            bestScore = 0;
+            weeklyProgress = 0;
+            recentResults = new List<QuizResultViewModel>();
+        }
+    }
+}

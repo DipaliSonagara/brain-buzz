@@ -1,6 +1,12 @@
 ﻿@inherits LayoutComponentBase
-<div class="theme-body">
 
-@Body
-
+<div class="blank-layout">
+    @Body
 </div>
+
+<style>
+    .blank-layout {
+        min-height: 100vh;
+        background-color: var(--color-gray-50);
+    }
+</style>

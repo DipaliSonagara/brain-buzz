@@ -1,0 +1,183 @@
+@page "/"
+@using BrainBuzz.web.Components.Layout
+@rendermode InteractiveServer
+@layout BlankLayout
+
+<PageTitle>BrainBuzz - Smart Quiz Platform</PageTitle>
+
+<!-- Navigation -->
+<nav class="navbar">
+    <div class="container">
+        <div class="navbar-container">
+            <a href="/" class="navbar-brand">🧠 BrainBuzz</a>
+            <ul class="navbar-nav">
+                <li><a href="/" class="nav-link active">Home</a></li>
+                <li><a href="/quizzes" class="nav-link">Quizzes</a></li>
+                <li><a href="/about" class="nav-link">About</a></li>
+                <li><a href="/login" class="btn btn-outline btn-sm">Sign In</a></li>
+                <li><a href="/register" class="btn btn-primary btn-sm">Get Started</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="container">
+        <div class="hero-content animate-fade-in">
+            <h1 class="hero-title">Master New Skills with Interactive Quizzes</h1>
+            <p class="hero-subtitle">Test your knowledge, track your progress, and compete with learners worldwide. Start your learning journey today with BrainBuzz.</p>
+            <div class="hero-actions">
+                <a href="/register" class="btn btn-secondary btn-xl">Get Started Free</a>
+                <a href="/login" class="btn btn-outline btn-xl" style="color: white; border-color: white;">Sign In</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="container">
+        <h2 class="section-title">Why Choose BrainBuzz?</h2>
+        <p class="section-subtitle">Everything you need to enhance your learning experience and achieve your goals</p>
+        
+        <div class="grid grid-cols-3 stagger-animation">
+            <!-- Feature 1 -->
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <h3 class="feature-title">Smart Quizzes</h3>
+                <p class="feature-description">AI-powered questions that adapt to your learning style and help you master topics faster.</p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Progress Tracking</h3>
+                <p class="feature-description">Detailed analytics and insights to monitor your improvement and identify areas for growth.</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3 class="feature-title">Community Learning</h3>
+                <p class="feature-description">Join a vibrant community of learners and share your achievements with friends.</p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3 class="feature-title">Mobile Ready</h3>
+                <p class="feature-description">Learn on the go with our responsive design that works perfectly on any device.</p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="feature-card">
+                <div class="feature-icon">🏆</div>
+                <h3 class="feature-title">Achievements</h3>
+                <p class="feature-description">Earn badges and climb leaderboards as you complete challenges and reach milestones.</p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="feature-card">
+                <div class="feature-icon">⏱️</div>
+                <h3 class="feature-title">Time Management</h3>
+                <p class="feature-description">Timed quizzes help you build speed and confidence for tests and real-world scenarios.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section style="padding: 5rem 0; background: white;">
+    <div class="container">
+        <div class="grid grid-cols-4">
+            <div class="stat-card">
+                <div class="stat-value">10,000+</div>
+                <div class="stat-label">Active Users</div>
+                <div class="stat-trend positive">
+                    <span>↑</span> 23% this month
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-value">50,000+</div>
+                <div class="stat-label">Quizzes Taken</div>
+                <div class="stat-trend positive">
+                    <span>↑</span> 15% this month
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-value">100+</div>
+                <div class="stat-label">Categories</div>
+                <div class="stat-trend positive">
+                    <span>↑</span> 5 new added
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-value">95%</div>
+                <div class="stat-label">Satisfaction Rate</div>
+                <div class="stat-trend positive">
+                    <span>↑</span> Excellent
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section style="padding: 5rem 0; background: linear-gradient(135deg, #10b981, #047857); color: white;">
+    <div class="container">
+        <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+            <h2 style="font-size: 2.25rem; font-weight: bold; margin-bottom: 1.5rem; color: white;">Ready to Start Your Learning Journey?</h2>
+            <p style="font-size: 1.25rem; margin-bottom: 2rem; color: rgba(255, 255, 255, 0.9);">Join thousands of learners who are already improving their knowledge with BrainBuzz. Sign up now and get access to unlimited quizzes!</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="/register" class="btn btn-xl" style="background: white; color: #047857;">Create Free Account</a>
+                <a href="/login" class="btn btn-outline btn-xl" style="color: white; border-color: white;">Sign In</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer style="background: #1f2937; color: #9ca3af; padding: 3rem 0;">
+    <div class="container">
+        <div class="grid grid-cols-4" style="margin-bottom: 2rem;">
+            <div>
+                <h3 style="color: white; font-size: 1.25rem; margin-bottom: 1rem;">BrainBuzz</h3>
+                <p style="font-size: 0.875rem;">Empowering learners worldwide with interactive quizzes and personalized learning experiences.</p>
+            </div>
+            <div>
+                <h4 style="color: white; font-size: 1rem; margin-bottom: 1rem;">Product</h4>
+                <ul style="list-style: none;">
+                    <li style="margin-bottom: 0.5rem;"><a href="/quizzes" style="color: #9ca3af;">Quizzes</a></li>
+                    <li style="margin-bottom: 0.5rem;"><a href="/categories" style="color: #9ca3af;">Categories</a></li>
+                    <li style="margin-bottom: 0.5rem;"><a href="/leaderboard" style="color: #9ca3af;">Leaderboard</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="color: white; font-size: 1rem; margin-bottom: 1rem;">Company</h4>
+                <ul style="list-style: none;">
+                    <li style="margin-bottom: 0.5rem;"><a href="/about" style="color: #9ca3af;">About Us</a></li>
+                    <li style="margin-bottom: 0.5rem;"><a href="/contact" style="color: #9ca3af;">Contact</a></li>
+                    <li style="margin-bottom: 0.5rem;"><a href="/careers" style="color: #9ca3af;">Careers</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="color: white; font-size: 1rem; margin-bottom: 1rem;">Legal</h4>
+                <ul style="list-style: none;">
+                    <li style="margin-bottom: 0.5rem;"><a href="/privacy" style="color: #9ca3af;">Privacy Policy</a></li>
+                    <li style="margin-bottom: 0.5rem;"><a href="/terms" style="color: #9ca3af;">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        <div style="border-top: 1px solid #374151; padding-top: 2rem; text-align: center;">
+            <p style="font-size: 0.875rem;">&copy; 2025 BrainBuzz. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+@code {
+    // Component logic can be added here if needed
+}

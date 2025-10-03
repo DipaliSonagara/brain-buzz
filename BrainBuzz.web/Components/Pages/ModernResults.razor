@@ -1,0 +1,394 @@
+@page "/results"
+@using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Services
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Models.ViewModels
+@inject IQuizService QuizService
+@inject SessionService SessionService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Results - BrainBuzz</PageTitle>
+
+<!-- Results Content -->
+<div class="content-container">
+     <div class="space-y-6">
+          <div class="mb-8">
+               <h1 class="text-3xl font-bold text-gray-900 mb-2">Quiz Results</h1>
+               <p class="text-gray-600">Track your learning progress and review your quiz performance.</p>
+          </div>
+
+          <div class="dashboard-content">
+               <!-- Statistics Overview -->
+               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="card">
+                         <div class="card-body">
+                              <div class="flex items-center justify-between">
+                                   <div>
+                                        <p class="text-sm font-medium text-gray-600">Total Quizzes</p>
+                                        <p class="text-3xl font-bold text-gray-900">@totalQuizzes</p>
+                                   </div>
+                                   <div class="w-12 h-12 bg-primary-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-question-circle text-primary-600 text-xl"></i>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+
+                    <div class="card">
+                         <div class="card-body">
+                              <div class="flex items-center justify-between">
+                                   <div>
+                                        <p class="text-sm font-medium text-gray-600">Average Score</p>
+                                        <p class="text-3xl font-bold text-gray-900">@averageScore%</p>
+                                   </div>
+                                   <div class="w-12 h-12 bg-success-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-chart-line text-success-600 text-xl"></i>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+
+                    <div class="card">
+                         <div class="card-body">
+                              <div class="flex items-center justify-between">
+                                   <div>
+                                        <p class="text-sm font-medium text-gray-600">Best Score</p>
+                                        <p class="text-3xl font-bold text-gray-900">@bestScore%</p>
+                                   </div>
+                                   <div class="w-12 h-12 bg-warning-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-trophy text-warning-600 text-xl"></i>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+
+                    <div class="card">
+                         <div class="card-body">
+                              <div class="flex items-center justify-between">
+                                   <div>
+                                        <p class="text-sm font-medium text-gray-600">This Week</p>
+                                        <p class="text-3xl font-bold text-gray-900">@weeklyQuizzes</p>
+                                   </div>
+                                   <div class="w-12 h-12 bg-info-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-calendar-week text-info-600 text-xl"></i>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+
+               <!-- Filter and Search -->
+               <div class="card mb-6">
+                    <div class="card-body">
+                         <div class="flex flex-col md:flex-row gap-4">
+                              <div class="flex-1">
+                                   <input type="text"
+                                          @bind="searchTerm"
+                                          @oninput="FilterResults"
+                                          placeholder="Search quiz results..."
+                                          class="form-input" />
+                              </div>
+                              <div class="flex gap-2">
+                                   <select @onchange="OnQuizFilterChanged" class="form-input">
+                                        <option value="">All Quizzes</option>
+                                        @if (availableQuizzes != null)
+                                        {
+                                             @foreach (var quiz in availableQuizzes)
+                                             {
+                                                  <option value="@quiz.QuizName" selected="@(selectedQuiz == quiz.QuizName)">@quiz.QuizName</option>
+                                             }
+                                        }
+                                   </select>
+                                   <select @onchange="OnSortChanged" class="form-input">
+                                        <option value="date" selected="@(sortBy == "date")">Sort by Date</option>
+                                        <option value="score" selected="@(sortBy == "score")">Sort by Score</option>
+                                        <option value="time" selected="@(sortBy == "time")">Sort by Time</option>
+                                   </select>
+                              </div>
+                         </div>
+                    </div>
+               </div>
+
+               <!-- Results List -->
+               @if (filteredResults == null)
+               {
+                    <div class="text-center py-12">
+                         <div class="loading-spinner"></div>
+                         <p class="text-gray-600 mt-4">Loading results...</p>
+                    </div>
+               }
+               else if (!filteredResults.Any())
+               {
+                    <div class="text-center py-12">
+                         <div class="text-6xl mb-4">📊</div>
+                         <h3 class="text-xl font-semibold text-gray-900 mb-2">No Results Found</h3>
+                         <p class="text-gray-600 mb-4">@(allResults?.Any() == true ? "Try adjusting your search criteria." : "Complete your first quiz to see results here.")</p>
+                         @if (allResults?.Any() != true)
+                         {
+                              <a href="/quizzes" class="btn btn-primary">Browse Quizzes</a>
+                         }
+                         else
+                         {
+                              <button @onclick="ClearFilters" class="btn btn-outline">Clear Filters</button>
+                         }
+                    </div>
+               }
+               else
+               {
+                    <div class="space-y-4">
+                         @foreach (var result in filteredResults)
+                         {
+                              <div class="card hover:shadow-md transition-shadow">
+                                   <div class="card-body">
+                                        <div class="flex items-center justify-between">
+                                             <div class="flex items-center gap-4">
+                                                  <div class="w-12 h-12 @GetScoreColorClass(result.Percentage) rounded-lg flex items-center justify-center">
+                                                       <span class="text-white font-bold">@result.Percentage.ToString("F0")%</span>
+                                                  </div>
+                                                  <div>
+                                                       <h3 class="text-lg font-semibold text-gray-900">@result.QuizName</h3>
+                                                       <div class="flex items-center gap-4 text-sm text-gray-600">
+                                                            <span><i class="fas fa-calendar mr-1"></i>@result.CompletedAtDisplay</span>
+                                                            <span><i class="fas fa-clock mr-1"></i>@result.TimeSpentDisplay</span>
+                                                            <span><i class="fas fa-question-circle mr-1"></i>@result.Score/@result.TotalQuestions</span>
+                                                       </div>
+                                                  </div>
+                                             </div>
+                                             <div class="flex items-center gap-2">
+                                                  <span class="badge @GetGradeBadgeClass(result.Percentage)">@GetGrade(result.Percentage)</span>
+                                                  <button @onclick="() => ShowResultDetails(result)" class="btn btn-outline btn-sm">
+                                                       <i class="fas fa-eye"></i>
+                                                  </button>
+                                             </div>
+                                        </div>
+                                   </div>
+                              </div>
+                         }
+                    </div>
+               }
+          </div>
+     </div>
+
+     <!-- Result Details Modal -->
+     @if (showModal && selectedResult != null)
+     {
+          <div class="modal-overlay" @onclick="CloseModal">
+               <div class="modal-content" @onclick:stopPropagation="true">
+                    <div class="modal-header">
+                         <h3 class="modal-title">@selectedResult.QuizName - Results</h3>
+                         <button @onclick="CloseModal" class="modal-close">
+                              <i class="fas fa-times"></i>
+                         </button>
+                    </div>
+                    <div class="modal-body">
+                         <div class="space-y-6">
+                              <!-- Score Summary -->
+                              <div class="text-center">
+                                   <div class="w-24 h-24 @GetScoreColorClass(selectedResult.Percentage) rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <span class="text-white font-bold text-2xl">@selectedResult.Percentage.ToString("F0")%</span>
+                                   </div>
+                                   <h4 class="text-xl font-semibold text-gray-900 mb-2">@GetGrade(selectedResult.Percentage)</h4>
+                                   <p class="text-gray-600">@selectedResult.Score out of @selectedResult.TotalQuestions questions correct</p>
+                              </div>
+
+                              <!-- Details -->
+                              <div class="grid grid-cols-2 gap-4">
+                                   <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                        <div class="text-2xl font-bold text-gray-900">@selectedResult.TimeSpentDisplay</div>
+                                        <div class="text-sm text-gray-600">Time Taken</div>
+                                   </div>
+                                   <div class="text-center p-4 bg-gray-50 rounded-lg">
+                                        <div class="text-2xl font-bold text-gray-900">@selectedResult.CompletedAtDisplay</div>
+                                        <div class="text-sm text-gray-600">Completed</div>
+                                   </div>
+                              </div>
+
+                              <!-- Performance Analysis -->
+                              <div>
+                                   <h5 class="font-semibold text-gray-900 mb-3">Performance Analysis</h5>
+                                   <div class="space-y-2">
+                                        <div class="flex justify-between text-sm">
+                                             <span>Accuracy Rate:</span>
+                                             <span class="font-medium">@selectedResult.Percentage.ToString("F1")%</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                             <span>Questions Answered:</span>
+                                             <span class="font-medium">@selectedResult.TotalQuestions</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                             <span>Correct Answers:</span>
+                                             <span class="font-medium text-success">@selectedResult.Score</span>
+                                        </div>
+                                        <div class="flex justify-between text-sm">
+                                             <span>Incorrect Answers:</span>
+                                             <span class="font-medium text-error">@(selectedResult.TotalQuestions - selectedResult.Score)</span>
+                                        </div>
+                                   </div>
+                              </div>
+                         </div>
+                    </div>
+                    <div class="modal-footer">
+                         <button @onclick="CloseModal" class="btn btn-outline">Close</button>
+                         <a href="/quiz/@selectedResult.QuizId" class="btn btn-primary">
+                              <i class="fas fa-redo mr-2"></i>
+                              Retake Quiz
+                         </a>
+                    </div>
+               </div>
+          </div>
+     }
+</div>
+
+@code {
+     private List<QuizResultViewModel>? allResults;
+     private List<QuizResultViewModel> filteredResults = new();
+     private List<QuizViewModel>? availableQuizzes;
+     private string searchTerm = "";
+     private string selectedQuiz = "";
+     private string sortBy = "date";
+     private bool showModal = false;
+     private QuizResultViewModel? selectedResult;
+
+     // Statistics
+     private int totalQuizzes = 0;
+     private int averageScore = 0;
+     private int bestScore = 0;
+     private int weeklyQuizzes = 0;
+
+     protected override async Task OnInitializedAsync()
+     {
+          await LoadResults();
+     }
+
+     private async Task LoadResults()
+     {
+          try
+          {
+               // Get current user
+               var sessionId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
+               string currentUser = "Demo User";
+               if (!string.IsNullOrEmpty(sessionId))
+               {
+                    currentUser = SessionService.GetUsername(sessionId);
+               }
+
+               // Load results and quizzes
+               allResults = await QuizService.GetUserQuizResultsAsync(currentUser);
+               availableQuizzes = await QuizService.GetAllQuizzesAsync();
+
+               // Calculate statistics
+               if (allResults?.Any() == true)
+               {
+                    totalQuizzes = allResults.Count;
+                    averageScore = (int)allResults.Average(r => r.Percentage);
+                    bestScore = (int)allResults.Max(r => r.Percentage);
+
+                    // Weekly quizzes (last 7 days)
+                    var weekAgo = DateTime.Now.AddDays(-7);
+                    weeklyQuizzes = allResults.Count(r => r.CompletedAt >= weekAgo);
+               }
+
+               FilterResults();
+          }
+          catch (Exception ex)
+          {
+               Console.WriteLine($"Error loading results: {ex.Message}");
+               allResults = new List<QuizResultViewModel>();
+               availableQuizzes = new List<QuizViewModel>();
+               filteredResults = new List<QuizResultViewModel>();
+          }
+     }
+
+     private void FilterResults()
+     {
+          if (allResults == null)
+          {
+               filteredResults = new List<QuizResultViewModel>();
+               return;
+          }
+
+          var filtered = allResults.Where(result =>
+              (string.IsNullOrEmpty(searchTerm) ||
+               result.QuizName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+              (string.IsNullOrEmpty(selectedQuiz) || result.QuizName == selectedQuiz)
+          ).ToList();
+
+          // Sort results
+          filtered = sortBy switch
+          {
+               "score" => filtered.OrderByDescending(r => r.Percentage).ToList(),
+               "time" => filtered.OrderBy(r => r.TimeSpent).ToList(),
+               _ => filtered.OrderByDescending(r => r.CompletedAt).ToList()
+          };
+
+          filteredResults = filtered;
+     }
+
+     private void ClearFilters()
+     {
+          searchTerm = "";
+          selectedQuiz = "";
+          FilterResults();
+     }
+
+     private void OnQuizFilterChanged(ChangeEventArgs e)
+     {
+          selectedQuiz = e.Value?.ToString() ?? "";
+          FilterResults();
+     }
+
+     private void OnSortChanged(ChangeEventArgs e)
+     {
+          sortBy = e.Value?.ToString() ?? "date";
+          FilterResults();
+     }
+
+     private void ShowResultDetails(QuizResultViewModel result)
+     {
+          selectedResult = result;
+          showModal = true;
+     }
+
+     private void CloseModal()
+     {
+          showModal = false;
+          selectedResult = null;
+     }
+
+     private string GetScoreColorClass(double percentage)
+     {
+          return percentage switch
+          {
+               >= 90 => "bg-success",
+               >= 80 => "bg-primary",
+               >= 70 => "bg-warning",
+               _ => "bg-error"
+          };
+     }
+
+     private string GetGradeBadgeClass(double percentage)
+     {
+          return percentage switch
+          {
+               >= 90 => "badge-success",
+               >= 80 => "badge-primary",
+               >= 70 => "badge-warning",
+               _ => "badge-error"
+          };
+     }
+
+     private string GetGrade(double percentage)
+     {
+          return percentage switch
+          {
+               >= 90 => "A+",
+               >= 80 => "A",
+               >= 70 => "B",
+               >= 60 => "C",
+               >= 50 => "D",
+               _ => "F"
+          };
+     }
+}

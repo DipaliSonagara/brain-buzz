@@ -1,11 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@using BrainBuzz.web.Components.Layout
 
-
-<div class="container-fluid dashboard-container">
-    <div class="row flex-nowrap">
-        <div class="row">
-            <NavMenu></NavMenu>
-            @Body
-        </div>
-    </div>
-</div>
+<ModernLayout>
+    @Body
+</ModernLayout>

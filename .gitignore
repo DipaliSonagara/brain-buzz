@@ -4,6 +4,6 @@
 
 /.vs
 /BrainBuzz.web/.vs/BrainBuzz.web
-/BrainBuzz.web/bin/Debug/net8.0
+/BrainBuzz.web/bin
 /BrainBuzz.web/obj
 /BrainBuzz.web/.vs/ProjectEvaluation

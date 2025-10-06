@@ -6,10 +6,8 @@ using BrainBuzz.web.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Serilog;
-using System;
 
 // Configure Serilog
-
 
 try
 {
@@ -35,16 +33,15 @@ try
     var databaseSettings = builder.Configuration.GetSection(DatabaseSettings.SectionName).Get<DatabaseSettings>() ?? new DatabaseSettings();
     var securitySettings = builder.Configuration.GetSection(SecuritySettings.SectionName).Get<SecuritySettings>() ?? new SecuritySettings();
 
-    // Configure Entity Framework
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
-        options.UseSqlServer(
-            builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-            throw new InvalidOperationException("Connection string 'DefaultConnection' not found."),
-            sqlOptions =>
-            {
-                sqlOptions.CommandTimeout(databaseSettings.CommandTimeout);
-            });
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+                              string.Empty;
+        
+        options.UseSqlServer(connectionString, sqlOptions =>
+        {
+            sqlOptions.CommandTimeout(databaseSettings.CommandTimeout);
+        });
         
         if (databaseSettings.EnableSensitiveDataLogging)
         {
@@ -52,16 +49,14 @@ try
         }
     });
 
-    // Configure Identity with proper security settings
     builder.Services.AddDefaultIdentity<IdentityUser>(options => 
     {
-        var passwordReq = securitySettings.PasswordRequirements;
-        options.Password.RequireDigit = passwordReq.RequireDigit;
-        options.Password.RequireLowercase = passwordReq.RequireLowercase;
-        options.Password.RequireNonAlphanumeric = passwordReq.RequireNonAlphanumeric;
-        options.Password.RequireUppercase = passwordReq.RequireUppercase;
-        options.Password.RequiredLength = passwordReq.MinimumLength;
-        options.Password.RequiredUniqueChars = passwordReq.RequiredUniqueChars;
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireNonAlphanumeric = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequiredLength = 6;
+        options.Password.RequiredUniqueChars = 0;
         
         // Lockout settings
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
@@ -70,13 +65,21 @@ try
         
         // User settings
         options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-        options.User.RequireUniqueEmail = true;
+        options.User.RequireUniqueEmail = false; // Simplified for development
         
         // Sign-in settings
-        options.SignIn.RequireConfirmedEmail = false; // Set to true for production
+        options.SignIn.RequireConfirmedEmail = false;
         options.SignIn.RequireConfirmedPhoneNumber = false;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>();
+
+    builder.Services.AddDistributedMemoryCache();
+    builder.Services.AddSession(options =>
+    {
+        options.IdleTimeout = TimeSpan.FromMinutes(30);
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+    });
 
     // Register application services
     builder.Services.AddScoped<IUserService, UserService>();
@@ -91,15 +94,9 @@ try
     if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error", createScopeForErrors: true);
-        // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
         app.UseHsts();
     }
 
-    // Security enhancements
-    if (securitySettings.RequireHttps)
-    {
-        app.UseHttpsRedirection();
-    }
 
     // Add Serilog request logging
     app.UseSerilogRequestLogging();
@@ -107,27 +104,30 @@ try
     app.UseStaticFiles();
     app.UseAntiforgery();
 
+    app.UseSession();
+
     app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
 
-    // Database initialization
-    using (var scope = app.Services.CreateScope())
+    try
     {
-        try
+        using (var scope = app.Services.CreateScope())
         {
             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             Log.Information("Initializing database...");
+            
+            dbContext.Database.EnsureCreated();
+            
             DataSeeder.Seed(dbContext);
             Log.Information("Database initialized successfully");
         }
-        catch (Exception ex)
-        {
-            Log.Error(ex, "An error occurred while initializing the database");
-            throw;
-        }
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "An error occurred while initializing the database. Application will continue without database seeding.");
     }
 
     Log.Information("BrainBuzz application started successfully");
@@ -136,6 +136,7 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
+    throw;
 }
 finally
 {

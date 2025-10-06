@@ -9,24 +9,24 @@ using BrainBuzz.web.Models.Request;
 namespace BrainBuzz.web.Services
 {
     /// <summary>
-    /// Enhanced authentication service with proper security
+    /// Authentication service with proper security
     /// </summary>
-    public class EnhancedAuthenticationService : IEnhancedAuthenticationService
+    public class AuthenticationService : IAuthenticationService
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly SessionService _sessionService;
         private readonly IJSRuntime _jsRuntime;
         private readonly SecuritySettings _securitySettings;
-        private readonly ILogger<EnhancedAuthenticationService> _logger;
+        private readonly ILogger<AuthenticationService> _logger;
 
-        public EnhancedAuthenticationService(
+        public AuthenticationService(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
             SessionService sessionService,
             IJSRuntime jsRuntime,
             IOptions<SecuritySettings> securitySettings,
-            ILogger<EnhancedAuthenticationService> logger)
+            ILogger<AuthenticationService> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -185,10 +185,10 @@ namespace BrainBuzz.web.Services
                 {
                     _logger.LogInformation("User registered successfully: {Username}", registerRequest.Username);
                     return new RegistrationResult
-                    {
-                        IsSuccess = true,
-                        Message = "Registration successful"
-                    };
+                {
+                    IsSuccess = true,
+                    Message = "Registration successful"
+                };
                 }
                 else
                 {
@@ -323,21 +323,21 @@ namespace BrainBuzz.web.Services
         }
     }
 
-    /// <summary>
+     /// <summary>
     /// Enhanced authentication result
-    /// </summary>
+     /// </summary>
     public class AuthenticationResult
     {
         public bool IsAuthenticated { get; set; }
         public string Username { get; set; } = string.Empty;
-        public string SessionId { get; set; } = string.Empty;
+          public string SessionId { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;
-        public string ErrorMessage { get; set; } = string.Empty;
-    }
+          public string ErrorMessage { get; set; } = string.Empty;
+     }
 
-    /// <summary>
+     /// <summary>
     /// Enhanced registration result
-    /// </summary>
+     /// </summary>
     public class RegistrationResult
     {
         public bool IsSuccess { get; set; }

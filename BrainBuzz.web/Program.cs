@@ -84,7 +84,7 @@ try
     // Register application services
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IQuizService, QuizService>();
-    builder.Services.AddScoped<IEnhancedAuthenticationService, EnhancedAuthenticationService>();
+    builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
     builder.Services.AddSingleton<SessionService>();
 
     var app = builder.Build();

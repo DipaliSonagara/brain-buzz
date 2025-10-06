@@ -3,9 +3,9 @@ using BrainBuzz.web.Models.Request;
 namespace BrainBuzz.web.Services.Interface
 {
     /// <summary>
-    /// Enhanced authentication service interface
+    /// Authentication service interface
     /// </summary>
-    public interface IEnhancedAuthenticationService
+    public interface IAuthenticationService
     {
         /// <summary>
         /// Authenticates user with proper credential validation

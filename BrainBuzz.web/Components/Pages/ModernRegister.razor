@@ -3,7 +3,8 @@
 @using BrainBuzz.web.Models.Request
 @using BrainBuzz.web.Services
 @using BrainBuzz.web.Components.Common
-@inject AuthenticationService AuthService
+@using BrainBuzz.web.Services.Interface
+@inject IEnhancedAuthenticationService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer

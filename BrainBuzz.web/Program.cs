@@ -86,7 +86,6 @@ try
     builder.Services.AddScoped<IQuizService, QuizService>();
     builder.Services.AddScoped<IEnhancedAuthenticationService, EnhancedAuthenticationService>();
     builder.Services.AddSingleton<SessionService>();
-    builder.Services.AddScoped<AuthenticationService>(); // Keep for backward compatibility
 
     var app = builder.Build();
 

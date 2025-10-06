@@ -3,7 +3,8 @@
 @using BrainBuzz.web.Models.Request
 @using BrainBuzz.web.Services
 @using BrainBuzz.web.Components.Common
-@inject AuthenticationService AuthService
+@using BrainBuzz.web.Services.Interface
+@inject IEnhancedAuthenticationService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
 @rendermode InteractiveServer
@@ -140,10 +141,10 @@
         try
         {
             Console.WriteLine($"Login: Attempting login for user: {loginRequest.Username}");
-            var result = await AuthService.LoginAsync(loginRequest.Username, loginRequest.Password);
-            Console.WriteLine($"Login: Login result - IsSuccess: {result.IsSuccess}, SessionId: {result.SessionId}");
+            var result = await AuthService.AuthenticateAsync(loginRequest.Username, loginRequest.Password);
+            Console.WriteLine($"Login: Login result - IsAuthenticated: {result.IsAuthenticated}, SessionId: {result.SessionId}");
             
-            if (result.IsSuccess)
+            if (result.IsAuthenticated)
             {
                 Console.WriteLine("Login: Login successful, navigating to overview");
                 // Navigate to dashboard

@@ -22,7 +22,6 @@ namespace BrainBuzz.web.Constants
             public const string Home = "/";
             public const string Login = "/login";
             public const string Register = "/register";
-            public const string AccessDenied = "/access-denied";
             public const string Overview = "/overview";
             public const string Quizzes = "/quizzes";
             public const string Results = "/results";
@@ -38,7 +37,6 @@ namespace BrainBuzz.web.Constants
             public const string NetworkError = "Network error. Please check your connection and try again.";
             public const string TimeoutError = "Request timeout. Please try again.";
             public const string UnexpectedError = "An unexpected error occurred. Please try again later.";
-            public const string AccessDenied = "You need to be logged in to access this page.";
         }
 
         /// <summary>

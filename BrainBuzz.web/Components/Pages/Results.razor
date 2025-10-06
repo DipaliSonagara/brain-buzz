@@ -4,11 +4,11 @@
 @using BrainBuzz.web.Models.ViewModels
 @using BrainBuzz.web.Services.Interface
 @layout MainLayout
+@rendermode InteractiveServer
 @inject IQuizService QuizService
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@rendermode InteractiveServer
 
 <PageTitle>Results - BrainBuzz</PageTitle>
 
@@ -260,7 +260,18 @@
 
      protected override async Task OnInitializedAsync()
      {
-          await LoadResults();
+          // Initialize with default values during prerendering
+          totalQuizzes = 0;
+          averageScore = 0;
+          weeklyQuizzes = 0;
+     }
+
+     protected override async Task OnAfterRenderAsync(bool firstRender)
+     {
+          if (firstRender)
+          {
+               await LoadResults();
+          }
      }
 
      private async Task LoadResults()

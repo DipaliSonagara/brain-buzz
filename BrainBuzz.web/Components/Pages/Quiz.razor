@@ -5,11 +5,11 @@
 @using BrainBuzz.web.Services
 @using BrainBuzz.web.Services.Interface
 @layout MainLayout
+@rendermode InteractiveServer
 @inject IQuizService QuizService
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@rendermode InteractiveServer
 
 <PageTitle>Quiz - @quiz?.QuizName</PageTitle>
 
@@ -181,9 +181,9 @@
                                         <span>Next</span>
                                         <i class="fas fa-arrow-right"></i>
                                 </button>
-                            }
-                            else
-                            {
+}
+else
+{
                                     <button type="submit" class="btn btn-success btn-nav">
                                         <i class="fas fa-check"></i>
                                         <span>Submit Quiz</span>
@@ -210,7 +210,7 @@
                                 @(i + 1)
                             </button>
                         }
-                    </div>
+                        </div>
                         <div class="navigator-legend">
                             <div class="legend-item">
                                 <span class="legend-color current"></span>
@@ -271,8 +271,8 @@
             timeRemaining = quiz.TimeLimit * 60; // Convert minutes to seconds
             quizStartTime = DateTime.Now;
             
-            // Get current username from session
-            await GetCurrentUsername();
+            // Set default username (will be updated in OnAfterRenderAsync)
+            currentUsername = "Loading...";
         }
         catch (Exception ex)
         {
@@ -282,9 +282,15 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender && !showResults && timeRemaining > 0)
+        if (firstRender)
         {
-            await StartTimer();
+            // Get current username from session
+            await GetCurrentUsername();
+            
+            if (!showResults && timeRemaining > 0)
+            {
+                await StartTimer();
+            }
         }
     }
 

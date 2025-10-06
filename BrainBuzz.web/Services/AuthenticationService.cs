@@ -184,7 +184,7 @@ namespace BrainBuzz.web.Services
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User registered successfully: {Username}", registerRequest.Username);
-                    return new RegistrationResult
+                return new RegistrationResult
                 {
                     IsSuccess = true,
                     Message = "Registration successful"
@@ -223,14 +223,35 @@ namespace BrainBuzz.web.Services
                 var username = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "username") ?? string.Empty;
                 var userId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "userId") ?? string.Empty;
 
+                _logger.LogInformation("CheckAuthentication: SessionId='{SessionId}', Username='{Username}', UserId='{UserId}'", 
+                    sessionId, username, userId);
+                
+                // Also log to console for debugging
+                Console.WriteLine($"CheckAuthentication: SessionId='{sessionId}', Username='{username}', UserId='{userId}'");
+                
+                // Debug: Check what's actually in localStorage
+                try
+                {
+                    var allKeys = await _jsRuntime.InvokeAsync<string>("eval", "Object.keys(localStorage)");
+                    Console.WriteLine($"CheckAuthentication: All localStorage keys: {allKeys}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"CheckAuthentication: Error getting localStorage keys: {ex.Message}");
+                }
+
                 if (string.IsNullOrEmpty(sessionId) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(userId))
                 {
+                    _logger.LogInformation("CheckAuthentication: Missing session data, returning not authenticated");
                     return new AuthenticationResult { IsAuthenticated = false };
                 }
 
                 var isValid = await ValidateSessionAsync(sessionId);
+                _logger.LogInformation("CheckAuthentication: Session validation result: {IsValid}", isValid);
+                
                 if (isValid)
                 {
+                    _logger.LogInformation("CheckAuthentication: User authenticated successfully");
                     return new AuthenticationResult
                     {
                         IsAuthenticated = true,
@@ -240,6 +261,7 @@ namespace BrainBuzz.web.Services
                     };
                 }
 
+                _logger.LogInformation("CheckAuthentication: Session invalid, returning not authenticated");
                 return new AuthenticationResult { IsAuthenticated = false };
             }
             catch (Exception ex)
@@ -267,6 +289,22 @@ namespace BrainBuzz.web.Services
                 
                 _logger.LogInformation("Session created for user: {Username}, SessionId: {SessionId}", username, sessionId);
                 
+                // Also log to console for debugging
+                Console.WriteLine($"Session created for user: {username}, SessionId: {sessionId}");
+                
+                // Debug: Verify the data was stored
+                try
+                {
+                    var storedSessionId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
+                    var storedUsername = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "username");
+                    var storedUserId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "userId");
+                    Console.WriteLine($"Session verification - Stored: SessionId='{storedSessionId}', Username='{storedUsername}', UserId='{storedUserId}'");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Session verification failed: {ex.Message}");
+                }
+                
                 return sessionId;
             }
             catch (Exception ex)
@@ -284,20 +322,23 @@ namespace BrainBuzz.web.Services
             try
             {
                 var sessionId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
+                var username = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "username");
                 if (!string.IsNullOrEmpty(sessionId))
                 {
                     _sessionService.RemoveSession(sessionId);
                 }
 
+                await _signInManager.SignOutAsync();
                 await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "sessionId");
                 await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "username");
                 await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "userId");
 
-                _logger.LogInformation("User logged out successfully");
+                _logger.LogInformation("User '{Username}' logged out successfully", username ?? "Unknown");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during logout");
+                throw;
             }
         }
 

@@ -147,6 +147,8 @@
             if (result.IsAuthenticated)
             {
                 Console.WriteLine("Login: Login successful, navigating to overview");
+                // Small delay to ensure session is fully established
+                await Task.Delay(100);
                 // Navigate to dashboard
                 Navigation.NavigateTo("/overview", forceLoad: true);
             }

@@ -4,11 +4,11 @@
 @using BrainBuzz.web.Models.ViewModels
 @using BrainBuzz.web.Services.Interface
 @layout MainLayout
+@rendermode InteractiveServer
 @inject IQuizService QuizService
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@rendermode InteractiveServer
 
 <PageTitle>Profile - BrainBuzz</PageTitle>
 
@@ -216,7 +216,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadProfileData();
+        currentUser = "Loading...";
+        totalQuizzesTaken = 0;
+        averageScore = 0;
+        recentResults = new List<QuizResultViewModel>();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadProfileData();
+        }
     }
 
     private async Task LoadProfileData()

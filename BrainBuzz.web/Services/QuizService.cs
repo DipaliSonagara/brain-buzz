@@ -12,10 +12,12 @@ namespace BrainBuzz.web.Services
     public class QuizService : IQuizService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILoadingService _loadingService;
 
-        public QuizService(ApplicationDbContext context)
+        public QuizService(ApplicationDbContext context, ILoadingService loadingService)
         {
             _context = context;
+            _loadingService = loadingService;
         }
 
         /// <summary>
@@ -23,11 +25,25 @@ namespace BrainBuzz.web.Services
         /// </summary>
         public async Task<List<QuizViewModel>> GetAllQuizzesAsync()
         {
-            var quizzes = await _context.Quizzes
-                .OrderBy(q => q.QuizName)
-                .ToListAsync();
+            _loadingService.StartLoading("Loading quizzes...");
+            
+            try
+            {
+                var quizzes = await _context.Quizzes
+                    .OrderBy(q => q.QuizName)
+                    .ToListAsync();
 
-            return quizzes.Select(MapToQuizViewModel).ToList();
+                _loadingService.UpdateLoading("Processing quiz data...", 50);
+                var result = quizzes.Select(MapToQuizViewModel).ToList();
+                
+                _loadingService.StopLoading();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _loadingService.StopLoading();
+                throw;
+            }
         }
 
         /// <summary>
@@ -46,11 +62,25 @@ namespace BrainBuzz.web.Services
         /// </summary>
         public async Task<List<QuestionViewModel>> GetQuizQuestionsAsync(int quizId)
         {
-            var questions = await _context.Questions
-                .Where(q => q.QuizId == quizId)
-                .ToListAsync();
+            _loadingService.StartLoading("Loading quiz questions...");
+            
+            try
+            {
+                var questions = await _context.Questions
+                    .Where(q => q.QuizId == quizId)
+                    .ToListAsync();
 
-            return questions.Select(MapToQuestionViewModel).ToList();
+                _loadingService.UpdateLoading("Preparing questions...", 75);
+                var result = questions.Select(MapToQuestionViewModel).ToList();
+                
+                _loadingService.StopLoading();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _loadingService.StopLoading();
+                throw;
+            }
         }
 
         /// <summary>
@@ -58,13 +88,27 @@ namespace BrainBuzz.web.Services
         /// </summary>
         public async Task<List<QuizResultViewModel>> GetUserQuizResultsAsync(string username)
         {
-            var results = await _context.QuizResults
-                .Include(r => r.Quizzes)
-                .Where(r => r.Username == username)
-                .OrderByDescending(r => r.CompletedAt)
-                .ToListAsync();
+            _loadingService.StartLoading("Loading your quiz results...");
+            
+            try
+            {
+                var results = await _context.QuizResults
+                    .Include(r => r.Quizzes)
+                    .Where(r => r.Username == username)
+                    .OrderByDescending(r => r.CompletedAt)
+                    .ToListAsync();
 
-            return results.Select(MapToQuizResultViewModel).ToList();
+                _loadingService.UpdateLoading("Processing results...", 60);
+                var result = results.Select(MapToQuizResultViewModel).ToList();
+                
+                _loadingService.StopLoading();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _loadingService.StopLoading();
+                throw;
+            }
         }
 
         /// <summary>
@@ -72,6 +116,8 @@ namespace BrainBuzz.web.Services
         /// </summary>
         public async Task<bool> SaveQuizResultAsync(QuizResultViewModel result)
         {
+            _loadingService.StartLoading("Saving your quiz result...");
+            
             try
             {
                 var quizResult = new Models.DbTable.QuizResults
@@ -86,12 +132,16 @@ namespace BrainBuzz.web.Services
                     UserAnswers = result.UserAnswers
                 };
 
+                _loadingService.UpdateLoading("Processing your score...", 50);
                 _context.QuizResults.Add(quizResult);
                 await _context.SaveChangesAsync();
+                
+                _loadingService.StopLoading();
                 return true;
             }
             catch (Exception ex)
             {
+                _loadingService.StopLoading();
                 // Log the exception in a real application
                 Console.WriteLine($"Error saving quiz result: {ex.Message}");
                 return false;

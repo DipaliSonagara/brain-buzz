@@ -1,0 +1,56 @@
+@* Loading Card Component for content areas *@
+
+<div class="loading-card @GetCardClass()">
+    <div class="loading-card-content">
+        <LoadingSpinner Variant="@SpinnerVariant" Size="@SpinnerSize" Color="@SpinnerColor" />
+        
+        @if (!string.IsNullOrEmpty(Title))
+        {
+            <h3 class="loading-title">@Title</h3>
+        }
+        
+        @if (!string.IsNullOrEmpty(Message))
+        {
+            <p class="loading-message">@Message</p>
+        }
+        
+        @if (ShowProgress && ProgressPercentage > 0)
+        {
+            <div class="loading-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: @ProgressPercentage%"></div>
+                </div>
+                <span class="progress-text">@ProgressPercentage%</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Message { get; set; } = "";
+    [Parameter] public LoadingSpinner.SpinnerVariant SpinnerVariant { get; set; } = LoadingSpinner.SpinnerVariant.Circle;
+    [Parameter] public LoadingSpinner.SpinnerSize SpinnerSize { get; set; } = LoadingSpinner.SpinnerSize.Medium;
+    [Parameter] public string SpinnerColor { get; set; } = "primary";
+    [Parameter] public bool ShowProgress { get; set; } = false;
+    [Parameter] public int ProgressPercentage { get; set; } = 0;
+    [Parameter] public CardVariant Variant { get; set; } = CardVariant.Default;
+
+    private string GetCardClass()
+    {
+        var classes = new List<string> { "loading-card" };
+        
+        if (Variant != CardVariant.Default)
+            classes.Add($"loading-card-{Variant.ToString().ToLower()}");
+            
+        return string.Join(" ", classes);
+    }
+
+    public enum CardVariant
+    {
+        Default,
+        Minimal,
+        Detailed,
+        Fullscreen
+    }
+}

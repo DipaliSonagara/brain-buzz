@@ -19,6 +19,7 @@ namespace BrainBuzz.web.Services
         private readonly IJSRuntime _jsRuntime;
         private readonly SecuritySettings _securitySettings;
         private readonly ILogger<AuthenticationService> _logger;
+        private readonly ILoadingService _loadingService;
 
         public AuthenticationService(
             UserManager<IdentityUser> userManager,
@@ -26,7 +27,8 @@ namespace BrainBuzz.web.Services
             SessionService sessionService,
             IJSRuntime jsRuntime,
             IOptions<SecuritySettings> securitySettings,
-            ILogger<AuthenticationService> logger)
+            ILogger<AuthenticationService> logger,
+            ILoadingService loadingService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -34,6 +36,7 @@ namespace BrainBuzz.web.Services
             _jsRuntime = jsRuntime;
             _securitySettings = securitySettings.Value;
             _logger = logger;
+            _loadingService = loadingService;
         }
 
         /// <summary>
@@ -41,6 +44,8 @@ namespace BrainBuzz.web.Services
         /// </summary>
         public async Task<AuthenticationResult> AuthenticateAsync(string username, string password)
         {
+            _loadingService.StartLoading("Signing you in...");
+            
             try
             {
                 _logger.LogInformation("Authentication attempt for user: {Username}", username);
@@ -48,6 +53,7 @@ namespace BrainBuzz.web.Services
                 if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 {
                     _logger.LogWarning("Authentication failed: Empty username or password");
+                    _loadingService.StopLoading();
                     return new AuthenticationResult
                     {
                         IsAuthenticated = false,
@@ -87,8 +93,10 @@ namespace BrainBuzz.web.Services
                 {
                     _logger.LogInformation("Authentication successful for user: {Username}", username);
                     
+                    _loadingService.UpdateLoading("Creating your session...", 75);
                     var sessionId = await CreateSessionAsync(user.Id, user.UserName ?? string.Empty);
                     
+                    _loadingService.StopLoading();
                     return new AuthenticationResult
                     {
                         IsAuthenticated = true,
@@ -100,6 +108,7 @@ namespace BrainBuzz.web.Services
                 else if (result.IsLockedOut)
                 {
                     _logger.LogWarning("Authentication failed: Account locked out - {Username}", username);
+                    _loadingService.StopLoading();
                     return new AuthenticationResult
                     {
                         IsAuthenticated = false,
@@ -109,6 +118,7 @@ namespace BrainBuzz.web.Services
                 else
                 {
                     _logger.LogWarning("Authentication failed: Invalid password - {Username}", username);
+                    _loadingService.StopLoading();
                     return new AuthenticationResult
                     {
                         IsAuthenticated = false,
@@ -119,6 +129,7 @@ namespace BrainBuzz.web.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Authentication error for user: {Username}", username);
+                _loadingService.StopLoading();
                 return new AuthenticationResult
                 {
                     IsAuthenticated = false,

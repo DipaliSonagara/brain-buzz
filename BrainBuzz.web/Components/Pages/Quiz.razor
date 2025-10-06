@@ -56,10 +56,10 @@
         
         @if (questions == null)
         {
-            <div class="loading-container">
-                <div class="loading-spinner"></div>
-                <p class="loading-text">Loading questions...</p>
-            </div>
+            <LoadingCard Title="Loading Quiz Questions" 
+                         Message="Preparing your quiz questions. Please wait..." 
+                         SpinnerVariant="LoadingSpinner.SpinnerVariant.Dots" 
+                         SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
         }
         else if (showResults)
         {

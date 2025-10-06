@@ -86,6 +86,7 @@ try
     builder.Services.AddScoped<IQuizService, QuizService>();
     builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
     builder.Services.AddSingleton<SessionService>();
+    builder.Services.AddSingleton<ILoadingService, LoadingService>();
 
     var app = builder.Build();
 

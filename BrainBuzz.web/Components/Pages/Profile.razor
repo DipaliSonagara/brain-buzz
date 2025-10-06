@@ -21,9 +21,18 @@
     </div>
 
     <div class="dashboard-content">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Profile Information -->
-            <div class="lg:col-span-1">
+        @if (currentUser == "Loading...")
+        {
+            <LoadingCard Title="Loading Profile" 
+                         Message="Fetching your profile information and statistics..." 
+                         SpinnerVariant="LoadingSpinner.SpinnerVariant.Circle" 
+                         SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
+        }
+        else
+        {
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Profile Information -->
+                <div class="lg:col-span-1">
                 <div class="card">
                     <div class="card-body text-center">
                         <div class="w-24 h-24 bg-primary-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -200,6 +209,7 @@
                 </div>
             </div>
         </div>
+        }
     </div>
     </div>
 </div>

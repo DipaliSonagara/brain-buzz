@@ -31,17 +31,26 @@
 
     <!-- Statistics Overview -->
     <section class="stats-overview">
-        <div class="stats-grid">
-            <div class="stat-item stat-primary">
-                <div class="stat-icon">
-                    <i class="fas fa-question-circle"></i>
+        @if (currentUser == "Loading...")
+        {
+            <LoadingCard Title="Loading Dashboard" 
+                         Message="Preparing your personalized dashboard..." 
+                         SpinnerVariant="LoadingSpinner.SpinnerVariant.Pulse" 
+                         SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
+        }
+        else
+        {
+            <div class="stats-grid">
+                <div class="stat-item stat-primary">
+                    <div class="stat-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-number">@totalQuizzes</div>
+                        <div class="stat-label">Total Quizzes</div>
+                        <div class="stat-description">Available to take</div>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <div class="stat-number">@totalQuizzes</div>
-                    <div class="stat-label">Total Quizzes</div>
-                    <div class="stat-description">Available to take</div>
-                </div>
-            </div>
 
             <div class="stat-item stat-success">
                 <div class="stat-icon">
@@ -76,6 +85,7 @@
                 </div>
             </div>
         </div>
+        }
     </section>
 
     <!-- Main Content Grid -->

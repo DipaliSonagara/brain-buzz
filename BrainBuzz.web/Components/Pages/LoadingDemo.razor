@@ -1,0 +1,137 @@
+@page "/loading-demo"
+@using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Components.Common
+@using BrainBuzz.web.Services
+@inject ILoadingService LoadingService
+@layout MainLayout
+@rendermode InteractiveServer
+
+<PageTitle>Loading System Demo - BrainBuzz</PageTitle>
+
+<div class="content-container">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Loading System Demo</h1>
+        <p class="text-gray-600">Test different loading states and components.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Global Loading Test -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Global Loading</h3>
+            </div>
+            <div class="card-body">
+                <p class="text-sm text-gray-600 mb-4">Test the global loading overlay</p>
+                <button @onclick="TestGlobalLoading" class="btn btn-primary w-full">
+                    Start Global Loading
+                </button>
+            </div>
+        </div>
+
+        <!-- Spinner Variants -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Spinner Variants</h3>
+            </div>
+            <div class="card-body">
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4">
+                        <LoadingSpinner Variant="LoadingSpinner.SpinnerVariant.Circle" Size="LoadingSpinner.SpinnerSize.Small" />
+                        <span class="text-sm">Circle</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <LoadingSpinner Variant="LoadingSpinner.SpinnerVariant.Dots" Size="LoadingSpinner.SpinnerSize.Small" />
+                        <span class="text-sm">Dots</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <LoadingSpinner Variant="LoadingSpinner.SpinnerVariant.Rings" Size="LoadingSpinner.SpinnerSize.Small" />
+                        <span class="text-sm">Rings</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <LoadingSpinner Variant="LoadingSpinner.SpinnerVariant.Bars" Size="LoadingSpinner.SpinnerSize.Small" />
+                        <span class="text-sm">Bars</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <LoadingSpinner Variant="LoadingSpinner.SpinnerVariant.Pulse" Size="LoadingSpinner.SpinnerSize.Small" />
+                        <span class="text-sm">Pulse</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Cards -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Loading Cards</h3>
+            </div>
+            <div class="card-body">
+                <div class="space-y-4">
+                    <LoadingCard Title="Loading Data" 
+                                 Message="This is a minimal loading card" 
+                                 Variant="LoadingCard.CardVariant.Minimal" />
+                    
+                    <LoadingCard Title="Processing Request" 
+                                 Message="This is a detailed loading card with progress" 
+                                 ShowProgress="true" 
+                                 ProgressPercentage="65" 
+                                 Variant="LoadingCard.CardVariant.Detailed" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Demo -->
+    <div class="card mt-6">
+        <div class="card-header">
+            <h3 class="card-title">Progress Loading Demo</h3>
+        </div>
+        <div class="card-body">
+            <p class="text-sm text-gray-600 mb-4">Simulate a loading process with progress updates</p>
+            <button @onclick="TestProgressLoading" class="btn btn-secondary" disabled="@isProgressLoading">
+                @if (isProgressLoading)
+                {
+                    <span>Loading...</span>
+                }
+                else
+                {
+                    <span>Start Progress Demo</span>
+                }
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isProgressLoading = false;
+
+    private async Task TestGlobalLoading()
+    {
+        LoadingService.StartLoading("Testing global loading...");
+        
+        // Simulate some work
+        await Task.Delay(2000);
+        
+        LoadingService.UpdateLoading("Almost done...", 75);
+        await Task.Delay(1000);
+        
+        LoadingService.StopLoading();
+    }
+
+    private async Task TestProgressLoading()
+    {
+        isProgressLoading = true;
+        StateHasChanged();
+
+        LoadingService.StartLoading("Starting process...", 0);
+        
+        for (int i = 0; i <= 100; i += 10)
+        {
+            await Task.Delay(200);
+            LoadingService.UpdateLoading($"Processing step {i/10 + 1}/10...", i);
+        }
+        
+        LoadingService.StopLoading();
+        isProgressLoading = false;
+        StateHasChanged();
+    }
+}

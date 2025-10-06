@@ -1,12 +1,91 @@
-@* Common loading spinner component *@
+@* Enhanced Loading Spinner Component with multiple variants *@
 
-<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-    </div>
-    <span class="ms-2">@Message</span>
+<div class="loading-spinner @GetSpinnerClass()" style="@GetSpinnerStyle()">
+    @if (Variant == SpinnerVariant.Dots)
+    {
+        <div class="spinner-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+        </div>
+    }
+    else if (Variant == SpinnerVariant.Rings)
+    {
+        <div class="spinner-rings">
+            <div class="ring"></div>
+            <div class="ring"></div>
+            <div class="ring"></div>
+        </div>
+    }
+    else if (Variant == SpinnerVariant.Bars)
+    {
+        <div class="spinner-bars">
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+            <div class="bar"></div>
+        </div>
+    }
+    else if (Variant == SpinnerVariant.Pulse)
+    {
+        <div class="spinner-pulse"></div>
+    }
+    else
+    {
+        <!-- Default circular spinner -->
+        <div class="spinner-circle"></div>
+    }
+    
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <div class="spinner-message">@Message</div>
+    }
 </div>
 
 @code {
-    [Parameter] public string Message { get; set; } = "Loading...";
+    [Parameter] public SpinnerVariant Variant { get; set; } = SpinnerVariant.Circle;
+    [Parameter] public string Message { get; set; } = "";
+    [Parameter] public SpinnerSize Size { get; set; } = SpinnerSize.Medium;
+    [Parameter] public string Color { get; set; } = "primary";
+
+    private string GetSpinnerClass()
+    {
+        var classes = new List<string> { "loading-spinner" };
+        
+        classes.Add($"spinner-{Variant.ToString().ToLower()}");
+        classes.Add($"spinner-{Size.ToString().ToLower()}");
+        classes.Add($"spinner-{Color}");
+        
+        return string.Join(" ", classes);
+    }
+
+    private string GetSpinnerStyle()
+    {
+        var styles = new List<string>();
+        
+        if (Size == SpinnerSize.Small)
+            styles.Add("--spinner-size: 20px");
+        else if (Size == SpinnerSize.Large)
+            styles.Add("--spinner-size: 60px");
+        else
+            styles.Add("--spinner-size: 40px");
+            
+        return string.Join("; ", styles);
+    }
+
+    public enum SpinnerVariant
+    {
+        Circle,
+        Dots,
+        Rings,
+        Bars,
+        Pulse
+    }
+
+    public enum SpinnerSize
+    {
+        Small,
+        Medium,
+        Large
+    }
 }

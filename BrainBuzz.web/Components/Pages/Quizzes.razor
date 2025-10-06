@@ -21,10 +21,10 @@
           <div class="space-y-6">
                @if (quizzes == null)
                {
-                    <div class="text-center py-12">
-                         <div class="loading-spinner"></div>
-                         <p class="text-gray-600 mt-4">Loading quizzes...</p>
-                    </div>
+                    <LoadingCard Title="Loading Quizzes" 
+                                 Message="Please wait while we fetch the available quizzes for you." 
+                                 SpinnerVariant="LoadingSpinner.SpinnerVariant.Rings" 
+                                 SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
                }
                else if (!quizzes.Any())
                {

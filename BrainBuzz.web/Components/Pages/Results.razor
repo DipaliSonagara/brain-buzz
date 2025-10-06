@@ -115,10 +115,10 @@
                <!-- Results List -->
                @if (filteredResults == null)
                {
-                    <div class="text-center py-12">
-                         <div class="loading-spinner"></div>
-                         <p class="text-gray-600 mt-4">Loading results...</p>
-                    </div>
+                    <LoadingCard Title="Loading Your Results" 
+                                 Message="Fetching your quiz results and performance data..." 
+                                 SpinnerVariant="LoadingSpinner.SpinnerVariant.Bars" 
+                                 SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
                }
                else if (!filteredResults.Any())
                {

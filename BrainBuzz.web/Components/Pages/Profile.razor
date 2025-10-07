@@ -405,7 +405,7 @@
                     weeklyProgress = userResults.Count(r => r.CompletedAt >= weekAgo);
                     memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     totalQuizzesTaken = 0;
                     averageScore = 0;
@@ -417,7 +417,7 @@
                 }
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             currentUser = "Demo User";
             totalQuizzesTaken = 0;

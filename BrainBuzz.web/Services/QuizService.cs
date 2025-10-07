@@ -39,7 +39,7 @@ namespace BrainBuzz.web.Services
                 _loadingService.StopLoading();
                 return result;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _loadingService.StopLoading();
                 throw;
@@ -76,7 +76,7 @@ namespace BrainBuzz.web.Services
                 _loadingService.StopLoading();
                 return result;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _loadingService.StopLoading();
                 throw;
@@ -104,7 +104,7 @@ namespace BrainBuzz.web.Services
                 _loadingService.StopLoading();
                 return result;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _loadingService.StopLoading();
                 throw;

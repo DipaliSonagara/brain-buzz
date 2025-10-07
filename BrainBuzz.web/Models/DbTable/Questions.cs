@@ -10,15 +10,15 @@ namespace BrainBuzz.web.Models.DbTable
 
         [ForeignKey("Quizzes")]
         public int QuizId { get; set; }
-        public string QuestionText { get; set; }
-        public string OptionA { get; set; }
-        public string OptionB { get; set; }
-        public string OptionC { get; set; }
-        public string OptionD { get; set; }
-        public string CorrectOption { get; set; }
+        public required string QuestionText { get; set; }
+        public required string OptionA { get; set; }
+        public required string OptionB { get; set; }
+        public required string OptionC { get; set; }
+        public required string OptionD { get; set; }
+        public required string CorrectOption { get; set; }
 
         
-        public Quizzes Quizzes { get; set; }
+        public Quizzes? Quizzes { get; set; }
     }
 }
 

@@ -37,14 +37,7 @@ namespace BrainBuzz.web.Services
                    throw new Exception($"User creation failed: {string.Join(", ", result.Errors.Select(e => e.Description))}");
                }
                
-               var legacyUser = new Users()
-               {
-                 Email = registerRequest.Email,
-                 Username = registerRequest.Username,
-                 PasswordHash = "HASHED_BY_IDENTITY" 
-               };
-               await applicationDb.Users.AddAsync(legacyUser);
-               await applicationDb.SaveChangesAsync();
+               // User is now managed by ASP.NET Identity only
           }
 
           public async Task<bool> LoginUser(LoginRequest loginRequest)

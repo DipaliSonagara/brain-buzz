@@ -20,7 +20,7 @@ public static class DataSeeder
                     Category = "Web Development",
                     Difficulty = "Easy",
                     TimeLimit = 10, 
-                    TotalQuestions = 3 
+                    TotalQuestions = 3
                 },
                 new Quizzes { 
                     QuizName = "SQL Fundamentals", 
@@ -28,7 +28,7 @@ public static class DataSeeder
                     Category = "Database",
                     Difficulty = "Medium",
                     TimeLimit = 15, 
-                    TotalQuestions = 3 
+                    TotalQuestions = 3,
                 },
                 new Quizzes { 
                     QuizName = "Python Programming", 
@@ -36,7 +36,7 @@ public static class DataSeeder
                     Category = "Programming",
                     Difficulty = "Medium",
                     TimeLimit = 15, 
-                    TotalQuestions = 3 
+                    TotalQuestions = 3,
                 },
                 new Quizzes { 
                     QuizName = "JavaScript Essentials", 
@@ -44,7 +44,7 @@ public static class DataSeeder
                     Category = "Web Development",
                     Difficulty = "Hard",
                     TimeLimit = 20, 
-                    TotalQuestions = 5 
+                    TotalQuestions = 5,
                 },
                 new Quizzes { 
                     QuizName = "C# Basics", 
@@ -52,7 +52,7 @@ public static class DataSeeder
                     Category = "Programming",
                     Difficulty = "Medium",
                     TimeLimit = 15, 
-                    TotalQuestions = 4 
+                    TotalQuestions = 4,
                 }
             };
 

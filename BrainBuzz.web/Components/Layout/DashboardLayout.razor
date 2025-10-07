@@ -183,7 +183,7 @@ else
                 isLoading = false;
                 StateHasChanged();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 LoadingService.StopLoading();
                 isLoading = false;
@@ -213,7 +213,7 @@ else
             await AuthService.LogoutAsync();
             Navigation.NavigateTo("/", forceLoad: true);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Navigation.NavigateTo("/", forceLoad: true);
         }

@@ -383,7 +383,7 @@ else
                 currentUsername = SessionService.GetUsername(sessionId) ?? string.Empty;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             currentUsername = "Guest";
         }

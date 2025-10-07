@@ -252,7 +252,7 @@
                quizzes = await QuizService.GetAllQuizzesAsync();
                filteredQuizzes = quizzes?.ToList() ?? new List<QuizViewModel>();
           }
-          catch (Exception ex)
+          catch (Exception)
           {
                quizzes = new List<QuizViewModel>();
                filteredQuizzes = new List<QuizViewModel>();

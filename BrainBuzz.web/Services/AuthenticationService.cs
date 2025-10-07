@@ -236,20 +236,6 @@ namespace BrainBuzz.web.Services
 
                 _logger.LogInformation("CheckAuthentication: SessionId='{SessionId}', Username='{Username}', UserId='{UserId}'", 
                     sessionId, username, userId);
-                
-                // Also log to console for debugging
-                Console.WriteLine($"CheckAuthentication: SessionId='{sessionId}', Username='{username}', UserId='{userId}'");
-                
-                // Debug: Check what's actually in localStorage
-                try
-                {
-                    var allKeys = await _jsRuntime.InvokeAsync<string>("eval", "Object.keys(localStorage)");
-                    Console.WriteLine($"CheckAuthentication: All localStorage keys: {allKeys}");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"CheckAuthentication: Error getting localStorage keys: {ex.Message}");
-                }
 
                 if (string.IsNullOrEmpty(sessionId) || string.IsNullOrEmpty(username) || string.IsNullOrEmpty(userId))
                 {
@@ -300,20 +286,18 @@ namespace BrainBuzz.web.Services
                 
                 _logger.LogInformation("Session created for user: {Username}, SessionId: {SessionId}", username, sessionId);
                 
-                // Also log to console for debugging
-                Console.WriteLine($"Session created for user: {username}, SessionId: {sessionId}");
-                
                 // Debug: Verify the data was stored
                 try
                 {
                     var storedSessionId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
                     var storedUsername = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "username");
                     var storedUserId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "userId");
-                    Console.WriteLine($"Session verification - Stored: SessionId='{storedSessionId}', Username='{storedUsername}', UserId='{storedUserId}'");
+                    _logger.LogInformation("Session verification - Stored: SessionId='{SessionId}', Username='{Username}', UserId='{UserId}'", 
+                        storedSessionId, storedUsername, storedUserId);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Session verification failed: {ex.Message}");
+                    _logger.LogError(ex, "Session verification failed");
                 }
                 
                 return sessionId;

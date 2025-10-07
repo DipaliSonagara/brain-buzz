@@ -321,7 +321,7 @@
                     bestScore = userResults.Any() ? (int)userResults.Max(r => r.Percentage) : 0;
                     weeklyProgress = userResults.Count(r => r.CompletedAt >= DateTime.Now.AddDays(-7));
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     totalQuizzes = 0;
                     completedQuizzes = 0;
@@ -341,7 +341,7 @@
                 recentResults = new List<QuizResultViewModel>();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             currentUser = "Demo User";
             totalQuizzes = 0;

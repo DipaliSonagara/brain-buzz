@@ -36,8 +36,6 @@ namespace BrainBuzz.web.Services
             lock (_lock)
             {
                 var result = _activeSessions.ContainsKey(sessionId);
-                Console.WriteLine($"SessionService: IsUserLoggedIn for sessionId '{sessionId}' = {result}");
-                Console.WriteLine($"SessionService: Active sessions count: {_activeSessions.Count}");
                 return result;
             }
         }

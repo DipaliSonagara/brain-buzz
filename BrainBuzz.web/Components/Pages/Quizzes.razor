@@ -195,23 +195,11 @@
      {
           try
           {
-               Console.WriteLine("ModernQuizzes: Loading quizzes...");
                quizzes = await QuizService.GetAllQuizzesAsync();
-               Console.WriteLine($"ModernQuizzes: Loaded {quizzes?.Count ?? 0} quizzes");
-
-               if (quizzes != null)
-               {
-                    foreach (var quiz in quizzes)
-                    {
-                         Console.WriteLine($"Quiz: {quiz.QuizName}, ID: {quiz.QuizId}, Questions: {quiz.TotalQuestions}");
-                    }
-               }
-
                filteredQuizzes = quizzes?.ToList() ?? new List<QuizViewModel>();
           }
           catch (Exception ex)
           {
-               Console.WriteLine($"Error loading quizzes: {ex.Message}");
                quizzes = new List<QuizViewModel>();
                filteredQuizzes = new List<QuizViewModel>();
           }

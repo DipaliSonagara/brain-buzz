@@ -258,39 +258,33 @@
             }
 
             // Load user statistics
-            try
-            {
-                var userResults = await QuizService.GetUserQuizResultsAsync(currentUser);
-                recentResults = userResults.OrderByDescending(r => r.CompletedAt).ToList();
-                
-                totalQuizzesTaken = userResults.Count;
-                averageScore = userResults.Any() ? (int)userResults.Average(r => r.Percentage) : 0;
-                bestScore = userResults.Any() ? (int)userResults.Max(r => r.Percentage) : 0;
-                averageTimeSpent = userResults.Any() ? (int)userResults.Average(r => r.TimeSpent) : 0;
-                
-                // Calculate weekly progress (last 7 days)
-                var weekAgo = DateTime.Now.AddDays(-7);
-                weeklyProgress = userResults.Count(r => r.CompletedAt >= weekAgo);
-                
-                // Set member since date (demo: 30 days ago)
-                memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading profile data: {ex.Message}");
-                // Provide default values
-                totalQuizzesTaken = 0;
-                averageScore = 0;
-                bestScore = 0;
-                weeklyProgress = 0;
-                averageTimeSpent = 0;
-                memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
-                recentResults = new List<QuizResultViewModel>();
-            }
+                try
+                {
+                    var userResults = await QuizService.GetUserQuizResultsAsync(currentUser);
+                    recentResults = userResults.OrderByDescending(r => r.CompletedAt).ToList();
+                    
+                    totalQuizzesTaken = userResults.Count;
+                    averageScore = userResults.Any() ? (int)userResults.Average(r => r.Percentage) : 0;
+                    bestScore = userResults.Any() ? (int)userResults.Max(r => r.Percentage) : 0;
+                    averageTimeSpent = userResults.Any() ? (int)userResults.Average(r => r.TimeSpent) : 0;
+                    
+                    var weekAgo = DateTime.Now.AddDays(-7);
+                    weeklyProgress = userResults.Count(r => r.CompletedAt >= weekAgo);
+                    memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
+                }
+                catch (Exception ex)
+                {
+                    totalQuizzesTaken = 0;
+                    averageScore = 0;
+                    bestScore = 0;
+                    weeklyProgress = 0;
+                    averageTimeSpent = 0;
+                    memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
+                    recentResults = new List<QuizResultViewModel>();
+                }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in LoadProfileData: {ex.Message}");
             currentUser = "Demo User";
             totalQuizzesTaken = 0;
             averageScore = 0;

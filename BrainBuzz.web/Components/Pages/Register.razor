@@ -165,7 +165,6 @@
     {
         if (isLoading) return;
         
-        // Validation
         if (registerRequest.Password != registerRequest.ConfirmPassword)
         {
             errorMessage = "Passwords do not match";
@@ -190,8 +189,6 @@
             if (result.IsSuccess)
             {
                 successMessage = "Account created successfully! Redirecting to login...";
-                
-                // Wait a moment then redirect
                 await Task.Delay(2000);
                 Navigation.NavigateTo("/login", forceLoad: true);
             }
@@ -203,7 +200,6 @@
         catch (Exception ex)
         {
             errorMessage = "An error occurred. Please try again.";
-            Console.WriteLine($"Registration error: {ex.Message}");
         }
         finally
         {

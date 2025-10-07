@@ -142,8 +142,6 @@ namespace BrainBuzz.web.Services
             catch (Exception ex)
             {
                 _loadingService.StopLoading();
-                // Log the exception in a real application
-                Console.WriteLine($"Error saving quiz result: {ex.Message}");
                 return false;
             }
         }

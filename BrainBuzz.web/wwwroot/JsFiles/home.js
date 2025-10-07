@@ -93,7 +93,5 @@
                 this.style.transform = 'translateY(-3px)';
             });
         });
-
-        console.log('Home page initialized successfully');
     };
 }

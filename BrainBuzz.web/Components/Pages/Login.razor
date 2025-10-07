@@ -140,28 +140,21 @@
 
         try
         {
-            Console.WriteLine($"Login: Attempting login for user: {loginRequest.Username}");
             var result = await AuthService.AuthenticateAsync(loginRequest.Username, loginRequest.Password);
-            Console.WriteLine($"Login: Login result - IsAuthenticated: {result.IsAuthenticated}, SessionId: {result.SessionId}");
             
             if (result.IsAuthenticated)
             {
-                Console.WriteLine("Login: Login successful, navigating to overview");
-                // Small delay to ensure session is fully established
                 await Task.Delay(100);
-                // Navigate to dashboard
                 Navigation.NavigateTo("/overview", forceLoad: true);
             }
             else
             {
                 errorMessage = result.ErrorMessage ?? "Invalid username or password";
-                Console.WriteLine($"Login: Login failed - {errorMessage}");
             }
         }
         catch (Exception ex)
         {
             errorMessage = "An error occurred. Please try again.";
-            Console.WriteLine($"Login error: {ex.Message}");
         }
         finally
         {

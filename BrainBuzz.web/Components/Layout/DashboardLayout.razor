@@ -5,6 +5,7 @@
 @inject IAuthenticationService AuthService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject ILoadingService LoadingService
 
 <!-- Global Loading Overlay -->
 <GlobalLoader />
@@ -18,12 +19,6 @@
                     <div class="loading-spinner"></div>
                 </div>
                 <p class="text-center text-gray-600 mt-4">@LoadingMessage</p>
-                <p class="text-center text-red-600 mt-2">DEBUG: DashboardLayout is loading...</p>
-                <p class="text-center text-blue-600 mt-2">Component should render and call OnAfterRenderAsync</p>
-                <script>
-                    console.log("DashboardLayout: Component markup is rendering!");
-                    console.log("DashboardLayout: About to trigger OnAfterRenderAsync");
-                </script>
             </div>
         </div>
     </div>
@@ -139,7 +134,6 @@ else if (isAuthenticated)
 }
 else
 {
-    <!-- Redirect to access denied -->
     <div style="display: none;"></div>
 }
 
@@ -156,73 +150,46 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // Initialize without JavaScript interop calls
-        Console.WriteLine("DashboardLayout: Initializing...");
-        Console.WriteLine("DashboardLayout: Component is being initialized!");
         isLoading = true;
         StateHasChanged();
-        
-        // Force a render to ensure the component renders
         await InvokeAsync(StateHasChanged);
-        Console.WriteLine("DashboardLayout: Forced render completed");
-        
-        // Test: Try to trigger OnAfterRenderAsync manually
-        Console.WriteLine("DashboardLayout: Attempting to trigger OnAfterRenderAsync manually...");
-        await InvokeAsync(() => {
-            Console.WriteLine("DashboardLayout: Manual render trigger completed");
-        });
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Console.WriteLine($"DashboardLayout: OnAfterRenderAsync called - firstRender: {firstRender}");
         if (firstRender)
         {
             try
             {
-                Console.WriteLine("DashboardLayout: Starting authentication check after render...");
-                Console.WriteLine($"DashboardLayout: Current URL: {Navigation.Uri}");
-                
-                // Add a small delay to ensure any previous navigation has completed
+                LoadingService.StartLoading("Loading Dashboard...");
+                await Task.Delay(2000);
                 await Task.Delay(100);
                 
-                // Test JavaScript interop first
-                Console.WriteLine("DashboardLayout: Testing JavaScript interop...");
-                var testValue = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
-                Console.WriteLine($"DashboardLayout: JavaScript interop test - sessionId from localStorage: '{testValue}'");
-                
-                Console.WriteLine("DashboardLayout: About to call CheckAuthenticationAsync...");
                 var authResult = await AuthService.CheckAuthenticationAsync();
-                Console.WriteLine($"DashboardLayout: Auth result - IsAuthenticated: {authResult.IsAuthenticated}, Username: {authResult.Username}");
                 
                 isAuthenticated = authResult.IsAuthenticated;
                 currentUser = authResult.Username;
                 
                 if (!isAuthenticated)
                 {
-                    Console.WriteLine("DashboardLayout: Not authenticated, redirecting to login");
+                    LoadingService.StopLoading();
                     isLoading = false;
                     StateHasChanged();
-                    await Task.Delay(100); // Small delay before navigation
+                    await Task.Delay(100);
                     Navigation.NavigateTo("/login", forceLoad: true);
                     return;
                 }
                 
-                Console.WriteLine("DashboardLayout: User is authenticated, showing dashboard");
+                LoadingService.StopLoading();
                 isLoading = false;
-                Console.WriteLine("DashboardLayout: Authentication check complete, isLoading = false");
                 StateHasChanged();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"DashboardLayout: Error during authentication: {ex.Message}");
-                Console.WriteLine($"DashboardLayout: Stack trace: {ex.StackTrace}");
-                
-                // Handle any errors gracefully - redirect to login
-                Console.WriteLine("DashboardLayout: Authentication error, redirecting to login");
+                LoadingService.StopLoading();
                 isLoading = false;
                 StateHasChanged();
-                await Task.Delay(100); // Small delay before navigation
+                await Task.Delay(100);
                 Navigation.NavigateTo("/login", forceLoad: true);
             }
         }
@@ -244,16 +211,11 @@ else
     {
         try
         {
-            // Use the proper authentication service to logout
             await AuthService.LogoutAsync();
-            
-            // Navigate to home page
             Navigation.NavigateTo("/", forceLoad: true);
         }
         catch (Exception ex)
         {
-            // Log error and still navigate to home
-            Console.WriteLine($"Logout error: {ex.Message}");
             Navigation.NavigateTo("/", forceLoad: true);
         }
     }

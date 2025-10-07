@@ -28,15 +28,6 @@
 
     <!-- Statistics Overview -->
     <section class="stats-overview">
-        @if (currentUser == "Loading...")
-        {
-            <LoadingCard Title="Loading Dashboard" 
-                         Message="Preparing your personalized dashboard..." 
-                         SpinnerVariant="LoadingSpinner.SpinnerVariant.Pulse" 
-                         SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
-        }
-        else
-        {
             <div class="stats-grid">
                 <div class="stat-item stat-primary">
                     <div class="stat-icon">
@@ -82,7 +73,6 @@
                 </div>
             </div>
         </div>
-        }
     </section>
 
     <!-- Main Content Grid -->
@@ -283,13 +273,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        currentUser = "Loading...";
+        currentUser = "";
         totalQuizzes = 0;
         completedQuizzes = 0;
         averageScore = 0;
         bestScore = 0;
         weeklyProgress = 0;
         recentResults = new List<QuizResultViewModel>();
+        LoadingService.StartLoading("Loading Dashboard...");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -304,29 +295,24 @@
     {
         try
         {
-            // Get current user from session
             var sessionId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
             if (!string.IsNullOrEmpty(sessionId))
             {
                 currentUser = SessionService.GetUsername(sessionId);
             }
-            
-            // If no user found, use demo user
             if (string.IsNullOrEmpty(currentUser))
             {
                 currentUser = "Demo User";
             }
+            StateHasChanged();
 
-            // Load dashboard statistics
             if (!string.IsNullOrEmpty(currentUser) && currentUser != "Demo User")
             {
                 try
                 {
-                    // Get all quizzes
                     var allQuizzes = await QuizService.GetAllQuizzesAsync();
                     totalQuizzes = allQuizzes?.Count ?? 0;
 
-                    // Get user results
                     var userResults = await QuizService.GetUserQuizResultsAsync(currentUser);
                     recentResults = userResults.OrderByDescending(r => r.CompletedAt).ToList();
                     
@@ -337,7 +323,6 @@
                 }
                 catch (Exception ex)
                 {
-                    // Use demo data if no user found
                     totalQuizzes = 0;
                     completedQuizzes = 0;
                     averageScore = 0;
@@ -348,7 +333,6 @@
             }
             else
             {
-                // Use demo data if no user found
                 totalQuizzes = 0;
                 completedQuizzes = 0;
                 averageScore = 0;
@@ -367,6 +351,7 @@
             weeklyProgress = 0;
             recentResults = new List<QuizResultViewModel>();
         }
+        LoadingService.StopLoading();
         StateHasChanged();
     }
 }

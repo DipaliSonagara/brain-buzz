@@ -163,7 +163,6 @@ else
             {
                 LoadingService.StartLoading("Loading Dashboard...");
                 await Task.Delay(2000);
-                await Task.Delay(100);
                 
                 var authResult = await AuthService.CheckAuthenticationAsync();
                 

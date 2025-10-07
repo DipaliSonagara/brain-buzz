@@ -6,19 +6,6 @@
 
 <PageTitle>BrainBuzz - Smart Quiz Platform</PageTitle>
 
-@if (isLoading)
-{
-    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-        <LoadingCard Title="Welcome to BrainBuzz" 
-                     Message="Loading the best quiz platform for you..." 
-                     SpinnerVariant="LoadingSpinner.SpinnerVariant.Rings" 
-                     SpinnerSize="LoadingSpinner.SpinnerSize.Large"
-                     SpinnerColor="success" />
-    </div>
-}
-else
-{
-
 <!-- Simple Header -->
 <header style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 1rem 0; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
     <div class="container">
@@ -191,18 +178,3 @@ else
         </div>
     </div>
 </footer>
-}
-
-@code {
-    private bool isLoading = true;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await Task.Delay(1500);
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
-}

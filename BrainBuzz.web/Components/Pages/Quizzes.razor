@@ -142,50 +142,88 @@
      <!-- Quiz Details Modal -->
      @if (showModal && selectedQuiz != null)
      {
-          <div class="modal-overlay" @onclick="CloseModal">
-               <div class="modal-content" @onclick:stopPropagation="true">
-                    <div class="modal-header">
-                         <h3 class="modal-title">@selectedQuiz.QuizName</h3>
-                         <button @onclick="CloseModal" class="modal-close">
+          <div class="quiz-modal-overlay" @onclick="CloseModal">
+               <div class="quiz-modal-content" @onclick:stopPropagation="true">
+                    <!-- Modal Header -->
+                    <div class="quiz-modal-header">
+                         <div class="quiz-modal-title-section">
+                              <div class="quiz-modal-icon">
+                                   <i class="fas fa-question-circle"></i>
+                              </div>
+                              <div class="quiz-modal-title-content">
+                                   <h3 class="quiz-modal-title">@selectedQuiz.QuizName</h3>
+                                   <p class="quiz-modal-subtitle">Ready to test your knowledge?</p>
+                              </div>
+                         </div>
+                         <button @onclick="CloseModal" class="quiz-modal-close">
                               <i class="fas fa-times"></i>
                          </button>
                     </div>
-                    <div class="modal-body">
-                         <div class="space-y-4">
-                              <div>
-                                   <h4 class="font-semibold text-gray-900 mb-2">Description</h4>
-                                   <p class="text-gray-600">@selectedQuiz.Description</p>
+
+                    <!-- Modal Body -->
+                    <div class="quiz-modal-body">
+                         <!-- Description Section -->
+                         <div class="quiz-modal-section">
+                              <div class="quiz-modal-section-header">
+                                   <i class="fas fa-info-circle"></i>
+                                   <h4 class="quiz-modal-section-title">Description</h4>
                               </div>
-                              <div class="grid grid-cols-2 gap-4">
-                                   <div>
-                                        <h4 class="font-semibold text-gray-900 mb-2">Details</h4>
-                                        <div class="space-y-2 text-sm">
-                                             <div class="flex justify-between">
-                                                  <span class="text-gray-600">Questions:</span>
-                                                  <span class="font-medium">@selectedQuiz.TotalQuestions</span>
-                                             </div>
-                                             <div class="flex justify-between">
-                                                  <span class="text-gray-600">Time Limit:</span>
-                                                  <span class="font-medium">@selectedQuiz.TimeLimit min</span>
-                                             </div>
-                                             <div class="flex justify-between">
-                                                  <span class="text-gray-600">Category:</span>
-                                                  <span class="font-medium">@selectedQuiz.Category</span>
-                                             </div>
-                                             <div class="flex justify-between">
-                                                  <span class="text-gray-600">Difficulty:</span>
-                                                  <span class="font-medium">@selectedQuiz.Difficulty</span>
-                                             </div>
-                                        </div>
+                              <p class="quiz-modal-description">@selectedQuiz.Description</p>
+                         </div>
+
+                         <!-- Quiz Details Grid -->
+                         <div class="quiz-modal-details-grid">
+                              <div class="quiz-detail-item">
+                                   <div class="quiz-detail-icon">
+                                        <i class="fas fa-list-ol"></i>
+                                   </div>
+                                   <div class="quiz-detail-content">
+                                        <div class="quiz-detail-label">Questions</div>
+                                        <div class="quiz-detail-value">@selectedQuiz.TotalQuestions</div>
+                                   </div>
+                              </div>
+
+                              <div class="quiz-detail-item">
+                                   <div class="quiz-detail-icon">
+                                        <i class="fas fa-clock"></i>
+                                   </div>
+                                   <div class="quiz-detail-content">
+                                        <div class="quiz-detail-label">Time Limit</div>
+                                        <div class="quiz-detail-value">@selectedQuiz.TimeLimit min</div>
+                                   </div>
+                              </div>
+
+                              <div class="quiz-detail-item">
+                                   <div class="quiz-detail-icon">
+                                        <i class="fas fa-tag"></i>
+                                   </div>
+                                   <div class="quiz-detail-content">
+                                        <div class="quiz-detail-label">Category</div>
+                                        <div class="quiz-detail-value">@selectedQuiz.Category</div>
+                                   </div>
+                              </div>
+
+                              <div class="quiz-detail-item">
+                                   <div class="quiz-detail-icon">
+                                        <i class="fas fa-signal"></i>
+                                   </div>
+                                   <div class="quiz-detail-content">
+                                        <div class="quiz-detail-label">Difficulty</div>
+                                        <div class="quiz-detail-value">@selectedQuiz.Difficulty</div>
                                    </div>
                               </div>
                          </div>
                     </div>
-                    <div class="modal-footer">
-                         <button @onclick="CloseModal" class="btn btn-outline">Close</button>
-                         <a href="/quiz/@selectedQuiz.QuizId" class="btn btn-primary">
-                              <i class="fas fa-play mr-2"></i>
-                              Start Quiz
+
+                    <!-- Modal Footer -->
+                    <div class="quiz-modal-footer">
+                         <button @onclick="CloseModal" class="quiz-modal-btn quiz-modal-btn-secondary">
+                              <i class="fas fa-times"></i>
+                              <span>Close</span>
+                         </button>
+                         <a href="/quiz/@selectedQuiz.QuizId" class="quiz-modal-btn quiz-modal-btn-primary">
+                              <i class="fas fa-play"></i>
+                              <span>Start Quiz</span>
                          </a>
                     </div>
                </div>

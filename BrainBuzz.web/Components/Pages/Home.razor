@@ -18,21 +18,22 @@
 }
 else
 {
-<!-- Navigation -->
-<nav class="navbar">
+
+<!-- Simple Header -->
+<header style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 1rem 0; position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid rgba(0, 0, 0, 0.1);">
     <div class="container">
-        <div class="navbar-container">
-            <a href="/" class="navbar-brand">🧠 BrainBuzz</a>
-            <ul class="navbar-nav">
-                <li><a href="/" class="nav-link active">Home</a></li>
-                <li><a href="/quizzes" class="nav-link">Quizzes</a></li>
-                <li><a href="/about" class="nav-link">About</a></li>
-                <li><a href="/login" class="btn btn-outline btn-sm">Sign In</a></li>
-                <li><a href="/register" class="btn btn-primary btn-sm">Get Started</a></li>
-            </ul>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <a href="/" style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.5rem; font-weight: bold; color: #667eea; text-decoration: none;">
+                <img src="/logo/brain-buzz-logo.png" alt="BrainBuzz Logo" style="width: 32px; height: 32px;" />
+                BrainBuzz
+            </a>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <a href="/login" class="btn btn-outline btn-sm">Sign In</a>
+                <a href="/register" class="btn btn-primary btn-sm">Get Started</a>
+            </div>
         </div>
     </div>
-</nav>
+</header>
 
 <!-- Hero Section -->
 <section class="hero">

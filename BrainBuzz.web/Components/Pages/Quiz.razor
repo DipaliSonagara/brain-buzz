@@ -1,15 +1,11 @@
 ﻿@page "/quiz/{quizId:int}"
-@using BrainBuzz.web.Components.Layout
-@using BrainBuzz.web.Components.Common
-@using BrainBuzz.web.Models.ViewModels
-@using BrainBuzz.web.Services
-@using BrainBuzz.web.Services.Interface
 @layout MainLayout
 @rendermode InteractiveServer
 @inject IQuizService QuizService
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject ILoadingService LoadingService
 
 <PageTitle>Quiz - @quiz?.QuizName</PageTitle>
 

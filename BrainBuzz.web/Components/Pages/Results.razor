@@ -1,14 +1,11 @@
 @page "/results"
-@using BrainBuzz.web.Components.Layout
-@using BrainBuzz.web.Services
-@using BrainBuzz.web.Models.ViewModels
-@using BrainBuzz.web.Services.Interface
 @layout MainLayout
 @rendermode InteractiveServer
 @inject IQuizService QuizService
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject ILoadingService LoadingService
 
 <PageTitle>Results - BrainBuzz</PageTitle>
 

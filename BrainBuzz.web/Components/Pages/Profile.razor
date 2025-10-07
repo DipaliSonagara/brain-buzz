@@ -1,14 +1,15 @@
 @page "/profile"
-@using BrainBuzz.web.Components.Layout
-@using BrainBuzz.web.Services
-@using BrainBuzz.web.Models.ViewModels
 @using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Services
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
 @layout MainLayout
 @rendermode InteractiveServer
 @inject IQuizService QuizService
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject ILoadingService LoadingService
 
 <PageTitle>Profile - BrainBuzz</PageTitle>
 
@@ -258,6 +259,8 @@
             }
 
             // Load user statistics
+            if (!string.IsNullOrEmpty(currentUser) && currentUser != "Demo User")
+            {
                 try
                 {
                     var userResults = await QuizService.GetUserQuizResultsAsync(currentUser);
@@ -282,6 +285,7 @@
                     memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
                     recentResults = new List<QuizResultViewModel>();
                 }
+        }
         }
         catch (Exception ex)
         {

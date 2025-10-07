@@ -1,10 +1,23 @@
 @page "/"
 @using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Components.Common
 @rendermode InteractiveServer
 @layout BlankLayout
 
 <PageTitle>BrainBuzz - Smart Quiz Platform</PageTitle>
 
+@if (isLoading)
+{
+    <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <LoadingCard Title="Welcome to BrainBuzz" 
+                     Message="Loading the best quiz platform for you..." 
+                     SpinnerVariant="LoadingSpinner.SpinnerVariant.Rings" 
+                     SpinnerSize="LoadingSpinner.SpinnerSize.Large"
+                     SpinnerColor="success" />
+    </div>
+}
+else
+{
 <!-- Navigation -->
 <nav class="navbar">
     <div class="container">
@@ -177,6 +190,18 @@
         </div>
     </div>
 </footer>
+}
 
 @code {
+    private bool isLoading = true;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await Task.Delay(1500);
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
 }

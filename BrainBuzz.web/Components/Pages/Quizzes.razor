@@ -1,12 +1,10 @@
 @page "/quizzes"
-@using BrainBuzz.web.Components.Layout
-@using BrainBuzz.web.Models.ViewModels
-@using BrainBuzz.web.Services.Interface
 @layout MainLayout
 @rendermode InteractiveServer
 @inject IQuizService QuizService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
+@inject ILoadingService LoadingService
 
 <PageTitle>Quizzes - BrainBuzz</PageTitle>
 

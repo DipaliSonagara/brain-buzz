@@ -89,32 +89,48 @@
     <section class="main-grid">
         <!-- Recent Activity -->
         <div class="content-card recent-activity">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-history"></i>
-                    Recent Activity
-                </h3>
-                <a href="/results" class="view-all-link">View All</a>
+            <div class="dashboard-card-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3 class="header-title">Recent Activity</h3>
+                        <p class="header-subtitle">Your latest quiz attempts</p>
+                    </div>
+                </div>
+                <a href="/results" class="view-all-btn">
+                    <span>View All</span>
+                    <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
             <div class="card-content">
                 @if (recentResults?.Any() == true)
                 {
-                    <div class="activity-list">
+                    <div class="modern-activity-list">
                         @foreach (var result in recentResults.Take(5))
                         {
-                            <div class="activity-item">
-                                <div class="activity-icon @(result.Percentage >= 80 ? "success" : result.Percentage >= 60 ? "warning" : "error")">
-                                    <i class="fas fa-@(result.Percentage >= 80 ? "check" : result.Percentage >= 60 ? "exclamation" : "times")"></i>
+                            <div class="modern-activity-item">
+                                <div class="activity-status-indicator @(result.Percentage >= 80 ? "status-success" : result.Percentage >= 60 ? "status-warning" : "status-error")">
+                                    <div class="status-dot"></div>
                                 </div>
-                                <div class="activity-details">
-                                    <div class="activity-title">@result.QuizName</div>
-                                    <div class="activity-meta">
-                                        <span class="activity-date">@result.CompletedAtDisplay</span>
-                                        <span class="activity-time">@result.TimeSpentDisplay</span>
+                                <div class="activity-content">
+                                    <div class="activity-header">
+                                        <h4 class="activity-quiz-name">@result.QuizName</h4>
+                                        <div class="activity-score-badge @(result.Percentage >= 80 ? "score-success" : result.Percentage >= 60 ? "score-warning" : "score-error")">
+                                            @result.Percentage.ToString("F0")%
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="activity-score @(result.Percentage >= 80 ? "score-success" : result.Percentage >= 60 ? "score-warning" : "score-error")">
-                                    @result.Percentage%
+                                    <div class="activity-meta-info">
+                                        <div class="meta-item">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <span>@result.CompletedAtDisplay</span>
+                                        </div>
+                                        <div class="meta-item">
+                                            <i class="fas fa-clock"></i>
+                                            <span>@result.TimeSpentDisplay</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         }
@@ -122,10 +138,16 @@
                 }
                 else
                 {
-                    <div class="empty-state">
-                        <i class="fas fa-clipboard-list"></i>
-                        <p>No recent activity</p>
-                        <small>Start taking quizzes to see your progress here!</small>
+                    <div class="modern-empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <h4>No Recent Activity</h4>
+                        <p>Start taking quizzes to see your progress here!</p>
+                        <a href="/quizzes" class="empty-state-btn">
+                            <i class="fas fa-play"></i>
+                            <span>Start Your First Quiz</span>
+                        </a>
                     </div>
                 }
             </div>
@@ -133,11 +155,16 @@
 
         <!-- Quick Actions -->
         <div class="content-card quick-actions">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-bolt"></i>
-                    Quick Actions
-                </h3>
+            <div class="dashboard-card-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3 class="header-title">Quick Actions</h3>
+                        <p class="header-subtitle">Get started quickly</p>
+                    </div>
+                </div>
             </div>
             <div class="card-content">
                 <div class="action-buttons">
@@ -159,11 +186,16 @@
 
         <!-- Learning Goals -->
         <div class="content-card learning-goals">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-target"></i>
-                    Learning Goals
-                </h3>
+            <div class="dashboard-card-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-target"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3 class="header-title">Learning Goals</h3>
+                        <p class="header-subtitle">Track your progress</p>
+                    </div>
+                </div>
             </div>
             <div class="card-content">
                 <div class="goals-list">
@@ -202,11 +234,16 @@
 
         <!-- Achievements -->
         <div class="content-card achievements">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-medal"></i>
-                    Achievements
-                </h3>
+            <div class="dashboard-card-header">
+                <div class="header-content">
+                    <div class="header-icon">
+                        <i class="fas fa-medal"></i>
+                    </div>
+                    <div class="header-text">
+                        <h3 class="header-title">Achievements</h3>
+                        <p class="header-subtitle">Your accomplishments</p>
+                    </div>
+                </div>
             </div>
             <div class="card-content">
                 <div class="achievements-grid">

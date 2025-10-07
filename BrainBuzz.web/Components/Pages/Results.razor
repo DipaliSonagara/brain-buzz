@@ -1,4 +1,9 @@
 @page "/results"
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Services
+@using BrainBuzz.web.Models.ViewModels
+@using Microsoft.AspNetCore.Components
+@using Microsoft.JSInterop
 @layout MainLayout
 @rendermode InteractiveServer
 @inject IQuizService QuizService
@@ -119,10 +124,10 @@
                }
                else if (!filteredResults.Any())
                {
-                    <div class="text-center py-12">
-                         <div class="text-6xl mb-4">📊</div>
-                         <h3 class="text-xl font-semibold text-gray-900 mb-2">No Results Found</h3>
-                         <p class="text-gray-600 mb-4">@(allResults?.Any() == true ? "Try adjusting your search criteria." : "Complete your first quiz to see results here.")</p>
+                    <div class="empty-state">
+                         <div class="empty-state-icon">📊</div>
+                         <h3 class="empty-state-title">No Results Found</h3>
+                         <p class="empty-state-description">@(allResults?.Any() == true ? "Try adjusting your search criteria." : "Complete your first quiz to see results here.")</p>
                          @if (allResults?.Any() != true)
                          {
                               <a href="/quizzes" class="btn btn-primary">Browse Quizzes</a>
@@ -135,32 +140,45 @@
                }
                else
                {
-                    <div class="space-y-4">
+                    <div class="results-grid">
                          @foreach (var result in filteredResults)
                          {
-                              <div class="card hover:shadow-md transition-shadow">
-                                   <div class="card-body">
-                                        <div class="flex items-center justify-between">
-                                             <div class="flex items-center gap-4">
-                                                  <div class="w-12 h-12 @GetScoreColorClass(result.Percentage) rounded-lg flex items-center justify-center">
-                                                       <span class="text-white font-bold">@result.Percentage.ToString("F0")%</span>
-                                                  </div>
-                                                  <div>
-                                                       <h3 class="text-lg font-semibold text-gray-900">@result.QuizName</h3>
-                                                       <div class="flex items-center gap-4 text-sm text-gray-600">
-                                                            <span><i class="fas fa-calendar mr-1"></i>@result.CompletedAtDisplay</span>
-                                                            <span><i class="fas fa-clock mr-1"></i>@result.TimeSpentDisplay</span>
-                                                            <span><i class="fas fa-question-circle mr-1"></i>@result.Score/@result.TotalQuestions</span>
-                                                       </div>
-                                                  </div>
+                              <div class="result-card" @onclick="() => ShowResultDetails(result)">
+                                    <div class="result-card-header">
+                                         <div class="result-score-progress">
+                                              <div class="result-progress-bar">
+                                                   <div class="result-progress-fill @GetScoreColorClass(result.Percentage)" style="width: @result.Percentage%"></div>
+                                                   <span class="result-percentage-text @(result.Percentage < 30 ? "low-score" : "") @(result.Percentage < 50 ? "text-dark" : "")">@result.Percentage.ToString("F0")%</span>
+                                              </div>
+                                         </div>
+                                         <div class="result-grade-badge @GetGradeBadgeClass(result.Percentage)">
+                                              @GetGrade(result.Percentage)
+                                         </div>
+                                    </div>
+                                   
+                                   <div class="result-card-content">
+                                        <h3 class="result-quiz-name">@result.QuizName</h3>
+                                        
+                                        <div class="result-meta">
+                                             <div class="meta-item">
+                                                  <i class="fas fa-calendar-alt"></i>
+                                                  <span>@result.CompletedAtDisplay</span>
+                                                  <span class="meta-separator">•</span>
+                                                  <i class="fas fa-clock"></i>
+                                                  <span>@result.TimeSpentDisplay</span>
                                              </div>
-                                             <div class="flex items-center gap-2">
-                                                  <span class="badge @GetGradeBadgeClass(result.Percentage)">@GetGrade(result.Percentage)</span>
-                                                  <button @onclick="() => ShowResultDetails(result)" class="btn btn-outline btn-sm">
-                                                       <i class="fas fa-eye"></i>
-                                                  </button>
+                                             <div class="meta-item">
+                                                  <i class="fas fa-question-circle"></i>
+                                                  <span>@result.Score/@result.TotalQuestions questions</span>
                                              </div>
                                         </div>
+                                   </div>
+                                   
+                                   <div class="result-card-footer">
+                                        <button class="view-details-btn">
+                                             <i class="fas fa-eye"></i>
+                                             <span>View Details</span>
+                                        </button>
                                    </div>
                               </div>
                          }
@@ -172,66 +190,85 @@
      <!-- Result Details Modal -->
      @if (showModal && selectedResult != null)
      {
-          <div class="modal-overlay" @onclick="CloseModal">
-               <div class="modal-content" @onclick:stopPropagation="true">
-                    <div class="modal-header">
-                         <h3 class="modal-title">@selectedResult.QuizName - Results</h3>
-                         <button @onclick="CloseModal" class="modal-close">
+          <div class="result-modal-overlay" @onclick="CloseModal">
+               <div class="result-modal-content" @onclick:stopPropagation="true">
+                    <div class="result-modal-header">
+                         <div class="modal-title-section">
+                              <h3 class="result-modal-title">@selectedResult.QuizName</h3>
+                              <p class="result-modal-subtitle">Quiz Results</p>
+                         </div>
+                         <button @onclick="CloseModal" class="result-modal-close">
                               <i class="fas fa-times"></i>
                          </button>
                     </div>
-                    <div class="modal-body">
-                         <div class="space-y-6">
-                              <!-- Score Summary -->
-                              <div class="text-center">
-                                   <div class="w-24 h-24 @GetScoreColorClass(selectedResult.Percentage) rounded-full flex items-center justify-center mx-auto mb-4">
-                                        <span class="text-white font-bold text-2xl">@selectedResult.Percentage.ToString("F0")%</span>
-                                   </div>
-                                   <h4 class="text-xl font-semibold text-gray-900 mb-2">@GetGrade(selectedResult.Percentage)</h4>
-                                   <p class="text-gray-600">@selectedResult.Score out of @selectedResult.TotalQuestions questions correct</p>
-                              </div>
-
-                              <!-- Details -->
-                              <div class="grid grid-cols-2 gap-4">
-                                   <div class="text-center p-4 bg-gray-50 rounded-lg">
-                                        <div class="text-2xl font-bold text-gray-900">@selectedResult.TimeSpentDisplay</div>
-                                        <div class="text-sm text-gray-600">Time Taken</div>
-                                   </div>
-                                   <div class="text-center p-4 bg-gray-50 rounded-lg">
-                                        <div class="text-2xl font-bold text-gray-900">@selectedResult.CompletedAtDisplay</div>
-                                        <div class="text-sm text-gray-600">Completed</div>
+                    
+                    <div class="result-modal-body">
+                         <!-- Score Display -->
+                         <div class="score-display">
+                              <div class="score-progress-container">
+                                   <div class="score-progress-bar">
+                                        <div class="score-progress-fill @GetScoreColorClass(selectedResult.Percentage)" style="width: @selectedResult.Percentage%"></div>
+                                        <span class="score-percentage-text">@selectedResult.Percentage.ToString("F0")%</span>
                                    </div>
                               </div>
+                              <div class="score-info">
+                                   <h4 class="grade-display">@GetGrade(selectedResult.Percentage)</h4>
+                                   <p class="score-description">@selectedResult.Score out of @selectedResult.TotalQuestions questions correct</p>
+                              </div>
+                         </div>
 
-                              <!-- Performance Analysis -->
-                              <div>
-                                   <h5 class="font-semibold text-gray-900 mb-3">Performance Analysis</h5>
-                                   <div class="space-y-2">
-                                        <div class="flex justify-between text-sm">
-                                             <span>Accuracy Rate:</span>
-                                             <span class="font-medium">@selectedResult.Percentage.ToString("F1")%</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm">
-                                             <span>Questions Answered:</span>
-                                             <span class="font-medium">@selectedResult.TotalQuestions</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm">
-                                             <span>Correct Answers:</span>
-                                             <span class="font-medium text-success">@selectedResult.Score</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm">
-                                             <span>Incorrect Answers:</span>
-                                             <span class="font-medium text-error">@(selectedResult.TotalQuestions - selectedResult.Score)</span>
-                                        </div>
+                         <!-- Stats Grid -->
+                         <div class="stats-grid">
+                              <div class="stat-item">
+                                   <div class="stat-icon">
+                                        <i class="fas fa-clock"></i>
+                                   </div>
+                                   <div class="stat-content">
+                                        <div class="stat-value">@selectedResult.TimeSpentDisplay</div>
+                                        <div class="stat-label">Time Taken</div>
+                                   </div>
+                              </div>
+                              
+                              <div class="stat-item">
+                                   <div class="stat-icon">
+                                        <i class="fas fa-calendar-check"></i>
+                                   </div>
+                                   <div class="stat-content">
+                                        <div class="stat-value">@selectedResult.CompletedAtDisplay</div>
+                                        <div class="stat-label">Completed</div>
+                                   </div>
+                              </div>
+                         </div>
+
+                         <!-- Performance Breakdown -->
+                         <div class="performance-breakdown">
+                              <h5 class="breakdown-title">Performance Breakdown</h5>
+                              <div class="breakdown-stats">
+                                   <div class="breakdown-item">
+                                        <span class="breakdown-label">Accuracy Rate</span>
+                                        <span class="breakdown-value">@selectedResult.Percentage.ToString("F1")%</span>
+                                   </div>
+                                   <div class="breakdown-item">
+                                        <span class="breakdown-label">Questions Answered</span>
+                                        <span class="breakdown-value">@selectedResult.TotalQuestions</span>
+                                   </div>
+                                   <div class="breakdown-item correct">
+                                        <span class="breakdown-label">Correct Answers</span>
+                                        <span class="breakdown-value">@selectedResult.Score</span>
+                                   </div>
+                                   <div class="breakdown-item incorrect">
+                                        <span class="breakdown-label">Incorrect Answers</span>
+                                        <span class="breakdown-value">@(selectedResult.TotalQuestions - selectedResult.Score)</span>
                                    </div>
                               </div>
                          </div>
                     </div>
-                    <div class="modal-footer">
-                         <button @onclick="CloseModal" class="btn btn-outline">Close</button>
-                         <a href="/quiz/@selectedResult.QuizId" class="btn btn-primary">
-                              <i class="fas fa-redo mr-2"></i>
-                              Retake Quiz
+                    
+                    <div class="result-modal-footer">
+                         <button @onclick="CloseModal" class="btn-close-modal">Close</button>
+                         <a href="/quiz/@selectedResult.QuizId" class="btn-retake-modal">
+                              <i class="fas fa-redo"></i>
+                              <span>Retake Quiz</span>
                          </a>
                     </div>
                </div>
@@ -303,6 +340,8 @@
                availableQuizzes = new List<QuizViewModel>();
                filteredResults = new List<QuizResultViewModel>();
           }
+          
+          StateHasChanged();
      }
 
      private void FilterResults()
@@ -328,6 +367,7 @@
           };
 
           filteredResults = filtered;
+          StateHasChanged();
      }
 
      private void ClearFilters()

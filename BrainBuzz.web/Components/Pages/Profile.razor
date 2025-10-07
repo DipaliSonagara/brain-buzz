@@ -1,6 +1,7 @@
 @page "/profile"
 @using BrainBuzz.web.Services.Interface
 @using BrainBuzz.web.Services
+@using BrainBuzz.web.Models.ViewModels
 @using Microsoft.AspNetCore.Components
 @using Microsoft.JSInterop
 @layout MainLayout
@@ -285,7 +286,7 @@
                     memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
                     recentResults = new List<QuizResultViewModel>();
                 }
-        }
+            }
         }
         catch (Exception ex)
         {
@@ -298,5 +299,7 @@
             memberSince = DateTime.Now.AddDays(-30).ToString("MMM yyyy");
             recentResults = new List<QuizResultViewModel>();
         }
+        
+        StateHasChanged();
     }
 }

@@ -1,0 +1,46 @@
+@inherits LayoutComponentBase
+@using BrainBuzz.web.Services
+@inject ILoadingService LoadingService
+
+<div class="admin-layout">
+    <AdminNavMenu />
+    
+    <!-- Main Content Area -->
+    <main class="admin-main-content">
+        <div class="admin-content-wrapper">
+            @Body
+        </div>
+    </main>
+    
+    <!-- Reuse existing components -->
+    <GlobalLoader />
+    <ToastNotification />
+</div>
+
+<style>
+    .admin-layout {
+        display: flex;
+        min-height: 100vh;
+        background-color: #f8f9fa;
+    }
+
+    .admin-main-content {
+        flex: 1;
+        margin-left: 260px;
+        transition: margin-left 0.3s ease;
+    }
+
+    .admin-content-wrapper {
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Mobile responsiveness */
+    @@media (max-width: 768px) {
+        .admin-main-content {
+            margin-left: 0;
+        }
+    }
+</style>
+

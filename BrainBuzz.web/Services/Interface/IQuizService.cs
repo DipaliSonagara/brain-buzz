@@ -1,4 +1,5 @@
 using BrainBuzz.web.Models.ViewModels;
+using BrainBuzz.web.Models.Requests;
 
 namespace BrainBuzz.web.Services.Interface
 {
@@ -12,6 +13,12 @@ namespace BrainBuzz.web.Services.Interface
         /// </summary>
         /// <returns>List of quiz view models</returns>
         Task<List<QuizViewModel>> GetAllQuizzesAsync();
+
+        /// <summary>
+        /// Gets only active quizzes for customers
+        /// </summary>
+        /// <returns>List of active quiz view models</returns>
+        Task<List<QuizViewModel>> GetActiveQuizzesAsync();
         
         /// <summary>
         /// Gets a quiz by ID
@@ -53,5 +60,26 @@ namespace BrainBuzz.web.Services.Interface
         /// <param name="quizId">The quiz ID</param>
         /// <returns>Quiz statistics object</returns>
         Task<object> GetQuizStatisticsAsync(int quizId);
+        
+        /// <summary>
+        /// Creates a new quiz
+        /// </summary>
+        /// <param name="quizRequest">The quiz request to create</param>
+        /// <returns>Created quiz view model</returns>
+        Task<QuizViewModel> CreateQuizAsync(QuizRequest quizRequest);
+        
+        /// <summary>
+        /// Updates an existing quiz
+        /// </summary>
+        /// <param name="quizRequest">The quiz request to update</param>
+        /// <returns>Updated quiz view model</returns>
+        Task<QuizViewModel> UpdateQuizAsync(QuizRequest quizRequest);
+        
+        /// <summary>
+        /// Deletes a quiz
+        /// </summary>
+        /// <param name="quizId">The quiz ID to delete</param>
+        /// <returns>True if deleted successfully</returns>
+        Task<bool> DeleteQuizAsync(int quizId);
     }
 }

@@ -17,6 +17,7 @@ namespace BrainBuzz.web.Models.DbTable
         public int TimeLimit { get; set; }
         public int TotalQuestions { get; set; }
         public bool IsActive { get; set; } = true;
+        public bool IsDeleted { get; set; } = false;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
 
         public ICollection<Questions> Questions { get; set; } = new List<Questions>();

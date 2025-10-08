@@ -1,6 +1,7 @@
 @page "/quizzes"
 @layout MainLayout
 @rendermode InteractiveServer
+@using BrainBuzz.web.Constants
 @inject IQuizService QuizService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
@@ -56,11 +57,10 @@
                                    <div class="flex gap-2">
                                         <select @onchange="OnCategoryChanged" class="form-input">
                                              <option value="">All Categories</option>
-                                             <option value="General Knowledge" selected="@(selectedCategory == "General Knowledge")">General Knowledge</option>
-                                             <option value="Science" selected="@(selectedCategory == "Science")">Science</option>
-                                             <option value="Technology" selected="@(selectedCategory == "Technology")">Technology</option>
-                                             <option value="History" selected="@(selectedCategory == "History")">History</option>
-                                             <option value="Mathematics" selected="@(selectedCategory == "Mathematics")">Mathematics</option>
+                                             @foreach (var category in QuizCategories.GetAllCategories())
+                                             {
+                                                 <option value="@category" selected="@(selectedCategory == category)">@category</option>
+                                             }
                                         </select>
                                         <select @onchange="OnDifficultyChanged" class="form-input">
                                              <option value="">All Levels</option>
@@ -246,7 +246,7 @@
           
           try
           {
-               var result = await QuizService.GetAllQuizzesAsync();
+               var result = await QuizService.GetActiveQuizzesAsync();
                quizzes = result?.ToList() ?? new List<QuizViewModel>();
                filteredQuizzes = quizzes.ToList();
           }

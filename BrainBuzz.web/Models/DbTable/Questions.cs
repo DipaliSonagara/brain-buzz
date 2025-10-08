@@ -16,6 +16,7 @@ namespace BrainBuzz.web.Models.DbTable
         public required string OptionC { get; set; }
         public required string OptionD { get; set; }
         public required string CorrectOption { get; set; }
+        public bool IsDeleted { get; set; } = false;
 
         
         public Quizzes? Quizzes { get; set; }

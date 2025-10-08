@@ -1,0 +1,176 @@
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Services
+@using BrainBuzz.web.Constants
+@inject IAuthenticationService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<!-- Mobile Menu Toggle -->
+<button class="admin-mobile-menu-toggle" @onclick="ToggleMobileMenu">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Mobile Overlay -->
+@if (isMobileMenuOpen)
+{
+    <div class="admin-mobile-overlay" @onclick="ToggleMobileMenu"></div>
+}
+
+<!-- Admin Sidebar -->
+<aside class="admin-sidebar @(isMobileMenuOpen ? "open" : "")">
+    <div class="admin-sidebar-header">
+        <a href="@AppRoutes.AdminDashboard" class="admin-sidebar-logo">
+            <img src="/logo/brain-buzz-logo.png" alt="BrainBuzz Admin" />
+            <span class="admin-sidebar-logo-text">BrainBuzz Admin</span>
+        </a>
+    </div>
+    
+    <nav class="admin-sidebar-nav">
+        <div class="admin-nav-section">
+            <div class="admin-nav-section-title">Main</div>
+            
+            <div class="admin-sidebar-nav-item">
+                <a href="@AppRoutes.AdminDashboard" class="admin-sidebar-nav-link @(IsActiveRoute(AppRoutes.AdminDashboard) ? "active" : "")">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="admin-nav-section">
+            <div class="admin-nav-section-title">Content Management</div>
+            
+            <div class="admin-sidebar-nav-item">
+                <a href="@AppRoutes.AdminQuizzes" class="admin-sidebar-nav-link @(IsActiveRoute(AppRoutes.AdminQuizzes) ? "active" : "")">
+                    <i class="fas fa-question-circle"></i>
+                    <span>Quizzes</span>
+                </a>
+            </div>
+            
+            <div class="admin-sidebar-nav-item">
+                <a href="@AppRoutes.AdminCategories" class="admin-sidebar-nav-link @(IsActiveRoute(AppRoutes.AdminCategories) ? "active" : "")">
+                    <i class="fas fa-folder"></i>
+                    <span>Categories</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="admin-nav-section">
+            <div class="admin-nav-section-title">User Management</div>
+            
+            <div class="admin-sidebar-nav-item">
+                <a href="@AppRoutes.AdminUsers" class="admin-sidebar-nav-link @(IsActiveRoute(AppRoutes.AdminUsers) ? "active" : "")">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="admin-nav-section">
+            <div class="admin-nav-section-title">System</div>
+            
+            <div class="admin-sidebar-nav-item">
+                <a href="@AppRoutes.AdminAuditLogs" class="admin-sidebar-nav-link @(IsActiveRoute(AppRoutes.AdminAuditLogs) ? "active" : "")">
+                    <i class="fas fa-clipboard-list"></i>
+                    <span>Audit Logs</span>
+                </a>
+            </div>
+            
+            <div class="admin-sidebar-nav-item">
+                <a href="@AppRoutes.AdminSettings" class="admin-sidebar-nav-link @(IsActiveRoute(AppRoutes.AdminSettings) ? "active" : "")">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+            </div>
+        </div>
+        
+        <div class="admin-nav-section">
+            <div class="admin-sidebar-nav-item">
+                <a href="@AppRoutes.Overview" class="admin-sidebar-nav-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Customer Portal</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="admin-sidebar-footer">
+        <div class="admin-user-info">
+            <div class="admin-user-avatar">
+                <span>@(string.IsNullOrEmpty(currentUser) ? "A" : currentUser.Substring(0, 1).ToUpper())</span>
+            </div>
+            <div class="admin-user-details">
+                <p class="admin-user-name">@currentUser</p>
+                <p class="admin-user-role">Administrator</p>
+            </div>
+        </div>
+        <button class="btn btn-outline w-full mt-3" @onclick="Logout">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </div>
+</aside>
+
+@code {
+    private string currentUser = "";
+    private bool isMobileMenuOpen = false;
+    private string currentPath = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        
+        try
+        {
+            var authResult = await AuthService.CheckAuthenticationAsync();
+            
+            if (authResult.IsAuthenticated)
+            {
+                currentUser = authResult.Username;
+            }
+        }
+        catch (Exception)
+        {
+            currentUser = "Admin";
+        }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentPath = Navigation.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    private void ToggleMobileMenu()
+    {
+        isMobileMenuOpen = !isMobileMenuOpen;
+        StateHasChanged();
+    }
+
+    private bool IsActiveRoute(string route)
+    {
+        var routePath = route.TrimStart('/');
+        return currentPath.StartsWith(routePath) && routePath != "";
+    }
+
+    private async Task Logout()
+    {
+        try
+        {
+            await AuthService.LogoutAsync();
+            Navigation.NavigateTo(AppRoutes.Home, forceLoad: true);
+        }
+        catch (Exception)
+        {
+            Navigation.NavigateTo(AppRoutes.Home, forceLoad: true);
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}
+

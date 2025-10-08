@@ -266,10 +266,6 @@ else
             // Initialize timer
             timeRemaining = quiz.TimeLimit * 60; // Convert minutes to seconds
             quizStartTime = DateTime.Now;
-            
-            // Set default username (will be updated in OnAfterRenderAsync)
-            currentUsername = "Loading...";
-            
             isLoading = false;
         }
         catch (Exception ex)

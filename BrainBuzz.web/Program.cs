@@ -17,7 +17,10 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     // Add Serilog
-    builder.Host.UseSerilog();
+    builder.Host.UseSerilog((context, configuration) =>
+        configuration.ReadFrom.Configuration(context.Configuration)
+            .WriteTo.Console()
+            .WriteTo.File("logs/brainbuzz-.txt", rollingInterval: RollingInterval.Day));
 
     // Add services to the container.
     builder.Services.AddRazorComponents()
@@ -72,6 +75,7 @@ try
         options.SignIn.RequireConfirmedEmail = false;
         options.SignIn.RequireConfirmedPhoneNumber = false;
     })
+    .AddRoles<IdentityRole>() // Add role support
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
     builder.Services.AddDistributedMemoryCache();
@@ -86,6 +90,7 @@ try
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IQuizService, QuizService>();
     builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+    builder.Services.AddScoped<IQueryStringService, QueryStringService>();
     builder.Services.AddSingleton<SessionService>();
     builder.Services.AddSingleton<ILoadingService, LoadingService>();
     builder.Services.AddScoped<ToastService>();
@@ -121,12 +126,14 @@ try
     {
         using (var scope = app.Services.CreateScope())
         {
-            var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var services = scope.ServiceProvider;
+            var context = services.GetRequiredService<ApplicationDbContext>();
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+            var configuration = services.GetRequiredService<IConfiguration>();
             Log.Information("Initializing database...");
             
-            dbContext.Database.EnsureCreated();
-            
-            DataSeeder.Seed(dbContext);
+            await DataSeeder.SeedAsync(context, roleManager, userManager, configuration);
             Log.Information("Database initialized successfully");
         }
     }

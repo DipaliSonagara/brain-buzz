@@ -95,7 +95,11 @@ namespace BrainBuzz.web.Services
                     _logger.LogInformation("Authentication successful for user: {Username}", username);
                     
                     _loadingService.UpdateLoading("Creating your session...", 75);
-                    var sessionId = await CreateSessionAsync(user.Id, user.UserName ?? string.Empty);
+                    
+                    // Get user roles
+                    var roles = await _userManager.GetRolesAsync(user);
+                    
+                    var sessionId = await CreateSessionAsync(user.Id, user.UserName ?? string.Empty, roles.ToList());
                     
                     _loadingService.StopLoading();
                     
@@ -104,7 +108,8 @@ namespace BrainBuzz.web.Services
                         IsAuthenticated = true,
                         Username = user.UserName ?? string.Empty,
                         SessionId = sessionId,
-                        UserId = user.Id
+                        UserId = user.Id,
+                        Roles = roles.ToList()
                     };
                 }
                 else if (result.IsLockedOut)
@@ -255,6 +260,7 @@ namespace BrainBuzz.web.Services
                 var sessionId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId") ?? string.Empty;
                 var username = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "username") ?? string.Empty;
                 var userId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "userId") ?? string.Empty;
+                var rolesJson = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "userRoles") ?? string.Empty;
 
                 _logger.LogInformation("CheckAuthentication: SessionId='{SessionId}', Username='{Username}', UserId='{UserId}'", 
                     sessionId, username, userId);
@@ -270,13 +276,30 @@ namespace BrainBuzz.web.Services
                 
                 if (isValid)
                 {
-                    _logger.LogInformation("CheckAuthentication: User authenticated successfully");
+                    // Deserialize roles
+                    List<string> roles = new List<string>();
+                    if (!string.IsNullOrEmpty(rolesJson))
+                    {
+                        try
+                        {
+                            roles = JsonSerializer.Deserialize<List<string>>(rolesJson) ?? new List<string>();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to deserialize user roles");
+                        }
+                    }
+                    
+                    _logger.LogInformation("CheckAuthentication: User authenticated successfully with roles: {Roles}", 
+                        roles.Any() ? string.Join(", ", roles) : "none");
+                    
                     return new AuthenticationResult
                     {
                         IsAuthenticated = true,
                         Username = username,
                         SessionId = sessionId,
-                        UserId = userId
+                        UserId = userId,
+                        Roles = roles
                     };
                 }
 
@@ -293,7 +316,7 @@ namespace BrainBuzz.web.Services
         /// <summary>
         /// Creates a secure session for authenticated user
         /// </summary>
-        public async Task<string> CreateSessionAsync(string userId, string username)
+        public async Task<string> CreateSessionAsync(string userId, string username, List<string>? roles = null)
         {
             try
             {
@@ -306,6 +329,14 @@ namespace BrainBuzz.web.Services
                 await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "username", username);
                 await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "userId", userId);
                 
+                // Store roles as JSON
+                if (roles != null && roles.Any())
+                {
+                    var rolesJson = JsonSerializer.Serialize(roles);
+                    await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "userRoles", rolesJson);
+                    _logger.LogInformation("Stored roles for user {Username}: {Roles}", username, string.Join(", ", roles));
+                }
+                
                 _logger.LogInformation("Session created for user: {Username}, SessionId: {SessionId}", username, sessionId);
                 
                 // Debug: Verify the data was stored
@@ -314,8 +345,9 @@ namespace BrainBuzz.web.Services
                     var storedSessionId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
                     var storedUsername = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "username");
                     var storedUserId = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "userId");
-                    _logger.LogInformation("Session verification - Stored: SessionId='{SessionId}', Username='{Username}', UserId='{UserId}'", 
-                        storedSessionId, storedUsername, storedUserId);
+                    var storedRoles = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", "userRoles");
+                    _logger.LogInformation("Session verification - Stored: SessionId='{SessionId}', Username='{Username}', UserId='{UserId}', Roles='{Roles}'", 
+                        storedSessionId, storedUsername, storedUserId, storedRoles ?? "none");
                 }
                 catch (Exception ex)
                 {
@@ -349,6 +381,7 @@ namespace BrainBuzz.web.Services
                 await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "sessionId");
                 await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "username");
                 await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "userId");
+                await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", "userRoles");
 
                 _logger.LogInformation("User '{Username}' logged out successfully", username ?? "Unknown");
             }
@@ -388,9 +421,10 @@ namespace BrainBuzz.web.Services
     {
         public bool IsAuthenticated { get; set; }
         public string Username { get; set; } = string.Empty;
-          public string SessionId { get; set; } = string.Empty;
+        public string SessionId { get; set; } = string.Empty;
         public string UserId { get; set; } = string.Empty;
-          public string ErrorMessage { get; set; } = string.Empty;
+        public List<string> Roles { get; set; } = new List<string>();
+        public string ErrorMessage { get; set; } = string.Empty;
      }
 
      /// <summary>

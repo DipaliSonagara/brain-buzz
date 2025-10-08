@@ -33,8 +33,9 @@ namespace BrainBuzz.web.Services.Interface
         /// </summary>
         /// <param name="userId">User ID</param>
         /// <param name="username">Username</param>
+        /// <param name="roles">User roles</param>
         /// <returns>Session ID</returns>
-        Task<string> CreateSessionAsync(string userId, string username);
+        Task<string> CreateSessionAsync(string userId, string username, List<string>? roles = null);
         
         /// <summary>
         /// Clears user session and logs out

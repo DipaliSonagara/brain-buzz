@@ -1,0 +1,367 @@
+@page "/admin/quizzes/edit"
+@using BrainBuzz.web.Models.ViewModels
+@using BrainBuzz.web.Models.Requests
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Constants
+@using BrainBuzz.web.Components.Common
+@inject IQuizService QuizService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@inject IQueryStringService QueryStringService
+@inject ToastService ToastService
+@layout AdminLayout
+
+<PageTitle>Edit Quiz - Admin Panel</PageTitle>
+
+<div class="admin-page-header">
+    <div class="admin-page-title">
+        <h1>Edit Quiz</h1>
+        <p>Modify quiz information, questions, and options</p>
+    </div>
+    <div class="admin-page-actions">
+        <button class="btn btn-secondary" @onclick="GoBack">
+            <i class="fas fa-arrow-left"></i> Back to Quizzes
+        </button>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Card" Count="3" />
+}
+else if (quiz == null)
+{
+    <div class="error-message">
+        <h2>Quiz Not Found</h2>
+        <p>The requested quiz could not be found.</p>
+        <button class="btn btn-primary" @onclick="GoBack">Back to Quizzes</button>
+    </div>
+}
+else
+{
+    <div class="quiz-form-container">
+        <div class="quiz-form-card">
+            <div class="quiz-form-header">
+                <h2>Quiz Information</h2>
+            </div>
+            
+            <EditForm Model="quizForm" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                
+                <div class="form-content">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="title">Quiz Title *</label>
+                            <InputText id="title" @bind-Value="quizForm.Title" class="form-control" placeholder="Enter quiz title" />
+                            <ValidationMessage For="@(() => quizForm.Title)" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="category">Category *</label>
+                            <InputSelect id="category" @bind-Value="quizForm.Category" class="form-control">
+                                <option value="">Select a category</option>
+                                @foreach (var category in QuizCategories.GetAllCategories())
+                                {
+                                    <option value="@category">@category</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="@(() => quizForm.Category)" />
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <InputTextArea id="description" @bind-Value="quizForm.Description" class="form-control" rows="3" placeholder="Enter quiz description" />
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="timeLimit">Time Limit (minutes)</label>
+                            <InputNumber id="timeLimit" @bind-Value="quizForm.TimeLimitMinutes" class="form-control" placeholder="Optional" />
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="form-check active-quiz-check">
+                                <InputCheckbox id="isActive" @bind-Value="quizForm.IsActive" class="form-check-input" />
+                                <label for="isActive" class="form-check-label">Active Quiz</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="questions-section">
+                    <div class="questions-header">
+                        <h3>Questions</h3>
+                        <button type="button" class="btn btn-primary" @onclick="AddQuestion">
+                            <i class="fas fa-plus"></i> Add Question
+                        </button>
+                    </div>
+                    
+                    @if (quizForm.Questions.Any())
+                    {
+                        <div class="questions-list">
+                            @for (int i = 0; i < quizForm.Questions.Count; i++)
+                            {
+                                var questionIndex = i;
+                                var question = quizForm.Questions[questionIndex];
+                                
+                                <div class="question-card">
+                                    <div class="question-header">
+                                        <h4>Question @(questionIndex + 1)</h4>
+                                        <button type="button" class="btn btn-sm btn-danger" @onclick="() => RemoveQuestion(questionIndex)">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>Question Text *</label>
+                                        <InputText @bind-Value="question.QuestionText" class="form-control" placeholder="Enter question text" />
+                                        <ValidationMessage For="@(() => question.QuestionText)" />
+                                    </div>
+                                    
+                                    <div class="options-section">
+                                        <label>Options & Correct Answer *</label>
+                                        <p class="option-instruction">Enter your options below and select the correct answer using the radio button next to each option.</p>
+                                        
+                                        @for (int j = 0; j < question.Options.Count; j++)
+                                        {
+                                            var optionIndex = j;
+                                            <div class="option-row-enhanced">
+                                                <div class="option-radio">
+                                                    <input type="radio" 
+                                                           name="correctAnswer_@questionIndex" 
+                                                           value="@((char)('A' + optionIndex))" 
+                                                           checked="@(question.CorrectAnswer == ((char)('A' + optionIndex)).ToString())"
+                                                           @onchange="@((e) => SetCorrectAnswerLetter(questionIndex, ((char)('A' + optionIndex)).ToString()))" />
+                                                </div>
+                                                <div class="option-input">
+                                                    <InputText @bind-Value="question.Options[optionIndex]" class="form-control" placeholder="@($"Option {optionIndex + 1}")" />
+                                                </div>
+                                                <div class="option-actions">
+                                                    @if (question.Options.Count > 2)
+                                                    {
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="() => RemoveOption(questionIndex, optionIndex)">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                        
+                                        @if (question.Options.Count < 4)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-outline-primary" @onclick="() => AddOption(questionIndex)">
+                                                <i class="fas fa-plus"></i> Add Option
+                                            </button>
+                                        }
+                                        
+                                        <ValidationMessage For="@(() => question.CorrectAnswer)" />
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-questions">
+                            <p>No questions added yet. Click "Add Question" to get started.</p>
+                        </div>
+                    }
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" @onclick="GoBack">Cancel</button>
+                    <button type="submit" class="btn btn-primary" disabled="@isSaving">
+                        @if (isSaving)
+                        {
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <span>Saving</span>
+                        }
+                        else
+                        {
+                            <i class="fas fa-save"></i>
+                            <span>Update Quiz</span>
+                        }
+                    </button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    private QuizViewModel? quiz;
+    private QuizRequest quizForm = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        await Task.Delay(500); // Show loading skeleton
+        
+        try
+        {
+            var quizIdParam = await QueryStringService.GetQueryStringAsync("id");
+            if (int.TryParse(quizIdParam, out int quizId))
+            {
+                await LoadQuiz(quizId);
+            }
+            else
+            {
+                Console.WriteLine("Invalid quiz ID parameter");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading quiz: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadQuiz(int quizId)
+    {
+        try
+        {
+            var allQuizzes = await QuizService.GetAllQuizzesAsync();
+            quiz = allQuizzes.FirstOrDefault(q => q.Id == quizId);
+            
+            if (quiz != null)
+            {
+                quizForm = new QuizRequest
+                {
+                    Id = quiz.Id,
+                    Title = quiz.Title ?? "",
+                    Description = quiz.Description ?? "",
+                    Category = quiz.Category ?? "",
+                    TimeLimitMinutes = quiz.TimeLimitMinutes,
+                    IsActive = quiz.IsActive,
+                    Questions = (quiz.Questions ?? new List<QuestionViewModel>()).Select(q => new QuestionRequest
+                    {
+                        Id = q.Id,
+                        QuestionText = q.QuestionText ?? "",
+                        Type = q.Type ?? "MultipleChoice",
+                        Options = (q.Options ?? new List<string>()).ToList(),
+                        CorrectAnswer = q.CorrectAnswer ?? ""
+                    }).ToList()
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading quiz: {ex.Message}");
+        }
+    }
+
+    private void AddQuestion()
+    {
+        quizForm.Questions.Add(new QuestionRequest
+        {
+            Type = "MultipleChoice",
+            Options = new List<string> { "", "" },
+            CorrectAnswer = "A"
+        });
+    }
+
+    private void RemoveQuestion(int index)
+    {
+        if (quizForm.Questions.Count > index)
+        {
+            quizForm.Questions.RemoveAt(index);
+        }
+    }
+
+    private void AddOption(int questionIndex)
+    {
+        if (questionIndex < quizForm.Questions.Count)
+        {
+            quizForm.Questions[questionIndex].Options.Add("");
+        }
+    }
+
+    private void RemoveOption(int questionIndex, int optionIndex)
+    {
+        if (questionIndex < quizForm.Questions.Count && 
+            optionIndex < quizForm.Questions[questionIndex].Options.Count &&
+            quizForm.Questions[questionIndex].Options.Count > 2)
+        {
+            quizForm.Questions[questionIndex].Options.RemoveAt(optionIndex);
+        }
+    }
+
+    private void SetCorrectAnswerLetter(int questionIndex, string correctAnswerLetter)
+    {
+        if (questionIndex < quizForm.Questions.Count)
+        {
+            quizForm.Questions[questionIndex].CorrectAnswer = correctAnswerLetter;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (isSaving || quiz == null) return;
+
+        try
+        {
+            isSaving = true;
+            StateHasChanged();
+
+            // Clean up options (remove empty ones)
+            foreach (var question in quizForm.Questions)
+            {
+                question.Options = question.Options.Where(o => !string.IsNullOrEmpty(o)).ToList();
+            }
+
+            await QuizService.UpdateQuizAsync(quizForm);
+            
+            ToastService.ShowToast(ToastType.Success, "Quiz updated successfully!");
+            Navigation.NavigateTo(AppRoutes.AdminQuizzes);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating quiz: {ex.Message}");
+            ToastService.ShowToast(ToastType.Error, $"Error updating quiz: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+            StateHasChanged();
+        }
+    }
+
+    private bool ValidateForm()
+    {
+        if (string.IsNullOrWhiteSpace(quizForm.Title) || 
+            string.IsNullOrWhiteSpace(quizForm.Category))
+        {
+            return false;
+        }
+
+        if (!quizForm.Questions.Any())
+        {
+            return false;
+        }
+
+        foreach (var question in quizForm.Questions)
+        {
+            if (string.IsNullOrWhiteSpace(question.QuestionText) ||
+                string.IsNullOrWhiteSpace(question.CorrectAnswer) ||
+                question.Options.Count(o => !string.IsNullOrEmpty(o)) < 2)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo(AppRoutes.AdminQuizzes);
+    }
+
+}

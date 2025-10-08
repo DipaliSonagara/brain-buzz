@@ -1,0 +1,496 @@
+@page "/admin/quizzes"
+@using BrainBuzz.web.Constants
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Components.Common
+@using BrainBuzz.web.Models.ViewModels
+@using BrainBuzz.web.Models.Requests
+@inject IQuizService QuizService
+@inject NavigationManager Navigation
+@inject ToastService ToastService
+@layout AdminLayout
+
+<PageTitle>Quiz Management - BrainBuzz Admin</PageTitle>
+
+<div class="admin-page-header">
+    <h1 class="admin-page-title">Quiz Management</h1>
+    <p class="admin-page-subtitle">Create, edit, and manage quizzes</p>
+</div>
+
+@if (isLoading)
+{
+    <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Table" />
+}
+else
+{
+    <!-- Quiz Statistics -->
+    <div class="admin-stats-grid" style="margin-bottom: 2rem;">
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon primary">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>@totalQuizzes</h3>
+                <p>Total Quizzes</p>
+            </div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>@activeQuizzes</h3>
+                <p>Active Quizzes</p>
+            </div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon warning">
+                <i class="fas fa-pause-circle"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>@inactiveQuizzes</h3>
+                <p>Inactive Quizzes</p>
+            </div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon info">
+                <i class="fas fa-list"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>@totalQuestions</h3>
+                <p>Total Questions</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="admin-toolbar">
+        <div class="admin-search">
+            <input type="text" @bind="searchTerm" @onkeyup="OnSearchChanged" placeholder="Search quizzes..." class="admin-search-input" />
+            <i class="fas fa-search admin-search-icon"></i>
+        </div>
+        <div class="admin-filters">
+            <select @bind="selectedStatus" @bind:after="OnStatusFilterChanged" class="admin-filter-select">
+                <option value="">All Status</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+            </select>
+        </div>
+        <div class="admin-filters">
+            <select @bind="selectedCategory" @bind:after="OnCategoryFilterChanged" class="admin-filter-select">
+                <option value="">All Categories</option>
+                @foreach (var category in QuizCategories.GetAllCategories())
+                {
+                    <option value="@category">@category</option>
+                }
+            </select>
+        </div>
+        <button class="btn btn-primary" @onclick="CreateNewQuiz">
+            <i class="fas fa-plus"></i>
+            New Quiz
+        </button>
+        <button class="btn btn-secondary" @onclick="RefreshQuizzes">
+            <i class="fas fa-sync-alt"></i>
+            Refresh
+        </button>
+    </div>
+
+    <!-- Quizzes Table -->
+    <div class="admin-table-container">
+        @if (filteredQuizzes.Any())
+        {
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Quiz Name</th>
+                        <th>Category</th>
+                        <th>Questions</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var quiz in filteredQuizzes)
+                    {
+                        @if (quiz != null)
+                        {
+                            <tr>
+                            <td>
+                                <div class="quiz-name">
+                                    <strong>@quiz.Title</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="category-badge">@quiz.Category</span>
+                            </td>
+                            <td>
+                                <span class="question-count">@quiz.Questions.Count</span>
+                            </td>
+                            <td>
+                                <span class="status-badge @(quiz.IsActive ? "active" : "inactive")">
+                                    @(quiz.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+                            <td>@quiz.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td>
+                                <div class="action-buttons-horizontal">
+                                    <button class="btn btn-sm btn-outline" @onclick="() => ViewQuiz(quiz)" title="View Quiz">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline" @onclick="() => EditQuiz(quiz)" title="Edit Quiz">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline" @onclick="() => ToggleQuizStatus(quiz)" title="@(quiz.IsActive ? "Deactivate" : "Activate")">
+                                        <i class="fas fa-@(quiz.IsActive ? "pause" : "play")"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteQuiz(quiz)" title="Delete Quiz">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="admin-empty-state-enhanced">
+                <div class="empty-state-content">
+                    <div class="empty-icon-large">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h2>No Quizzes Found</h2>
+                    <p class="empty-message">@(string.IsNullOrEmpty(searchTerm) ? "No quizzes in the system." : "No quizzes match your search criteria.")</p>
+                    <div class="empty-actions">
+                        <button class="btn btn-primary btn-lg" @onclick="CreateNewQuiz">
+                            <i class="fas fa-plus"></i>
+                            Create Your First Quiz
+                        </button>
+                        @if (!string.IsNullOrEmpty(searchTerm))
+                        {
+                            <button class="btn btn-secondary btn-lg" @onclick="ClearFilters">
+                                <i class="fas fa-times"></i>
+                                Clear Filters
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<!-- Quiz View Modal -->
+@if (showViewModal)
+{
+    <div class="modal-overlay" @onclick="CloseViewModal">
+        <div class="modal-content modal-large" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>@viewingQuiz?.Title</h3>
+                <button class="modal-close" @onclick="CloseViewModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if (viewingQuiz != null)
+                {
+                    <div class="quiz-details">
+                        <div class="quiz-meta">
+                            <div class="meta-item">
+                                <strong>Category:</strong> @viewingQuiz.Category
+                            </div>
+                            <div class="meta-item">
+                                <strong>Questions:</strong> @viewingQuiz.Questions.Count
+                            </div>
+                            <div class="meta-item">
+                                <strong>Time Limit:</strong> @(viewingQuiz.TimeLimitMinutes?.ToString() + " minutes" ?? "No limit")
+                            </div>
+                            <div class="meta-item">
+                                <strong>Status:</strong> 
+                                <span class="status-badge @(viewingQuiz.IsActive ? "active" : "inactive")">
+                                    @(viewingQuiz.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </div>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(viewingQuiz.Description))
+                        {
+                            <div class="quiz-description">
+                                <strong>Description:</strong>
+                                <p>@viewingQuiz.Description</p>
+                            </div>
+                        }
+                        
+                        <div class="questions-preview">
+                            <h4>Questions (@viewingQuiz.Questions.Count)</h4>
+                            @foreach (var question in viewingQuiz.Questions)
+                            {
+                                <div class="question-preview">
+                                    <div class="question-header">
+                                        <span class="question-text">@question.QuestionText</span>
+                                        <span class="question-type">(@question.Type)</span>
+                                    </div>
+                                    
+                                    @if (question.Type == "MultipleChoice" && question.Options.Any())
+                                    {
+                                        <div class="options-preview">
+                                            @for (int i = 0; i < question.Options.Count; i++)
+                                            {
+                                                var optionLetter = ((char)('A' + i)).ToString();
+                                                var isCorrect = optionLetter == question.CorrectAnswer;
+                                                <div class="option-preview @(isCorrect ? "correct" : "")">
+                                                    @(i + 1). @question.Options[i]
+                                                    @if (isCorrect)
+                                                    {
+                                                        <i class="fas fa-check text-success"></i>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    
+                                    @if (question.Type == "TrueFalse")
+                                    {
+                                        <div class="answer-preview">
+                                            <strong>Correct Answer:</strong> @question.CorrectAnswer
+                                        </div>
+                                    }
+                                    
+                                    @if (question.Type == "FillInTheBlank")
+                                    {
+                                        <div class="answer-preview">
+                                            <strong>Correct Answer:</strong> @question.CorrectAnswer
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseViewModal">Close</button>
+                <button class="btn btn-primary" @onclick="() => { CloseViewModal(); EditQuiz(viewingQuiz!); }">
+                    <i class="fas fa-edit"></i>
+                    Edit Quiz
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private List<QuizViewModel> allQuizzes = new();
+    private List<QuizViewModel> filteredQuizzes = new();
+    
+    private string searchTerm = "";
+    private string selectedStatus = "";
+    private string selectedCategory = "";
+    
+    private int totalQuizzes = 0;
+    private int activeQuizzes = 0;
+    private int inactiveQuizzes = 0;
+    private int totalQuestions = 0;
+    
+    // Modal states
+    private bool showViewModal = false;
+    private QuizViewModel? viewingQuiz = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        await LoadQuizzes();
+        isLoading = false;
+    }
+
+    private async Task LoadQuizzes()
+    {
+        try
+        {
+            allQuizzes = await QuizService.GetAllQuizzesAsync();
+            Console.WriteLine($"Loaded {allQuizzes.Count} quizzes");
+            
+            CalculateStatistics();
+            ApplyFilters();
+            
+            Console.WriteLine($"Filtered to {filteredQuizzes.Count} quizzes");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading quizzes: {ex.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+        }
+    }
+
+    private void CalculateStatistics()
+    {
+        totalQuizzes = allQuizzes.Count;
+        activeQuizzes = allQuizzes.Count(q => q.IsActive);
+        inactiveQuizzes = allQuizzes.Count(q => !q.IsActive);
+        totalQuestions = allQuizzes.Sum(q => q.Questions.Count);
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<QuizViewModel> query = allQuizzes;
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(q => 
+                q.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                q.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                q.Category.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrEmpty(selectedStatus))
+        {
+            bool isActive = selectedStatus == "true";
+            query = query.Where(q => q.IsActive == isActive);
+        }
+
+        if (!string.IsNullOrEmpty(selectedCategory))
+        {
+            query = query.Where(q => q.Category == selectedCategory);
+        }
+
+        filteredQuizzes = query.ToList();
+    }
+
+    private void OnSearchChanged()
+    {
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void OnStatusFilterChanged()
+    {
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void OnCategoryFilterChanged()
+    {
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ClearFilters()
+    {
+        searchTerm = "";
+        selectedStatus = "";
+        selectedCategory = "";
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private async Task RefreshQuizzes()
+    {
+        isLoading = true;
+        StateHasChanged();
+        await LoadQuizzes();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private void CreateNewQuiz()
+    {
+        Navigation.NavigateTo(AppRoutes.AdminQuizzesNew);
+    }
+
+    private void EditQuiz(QuizViewModel quiz)
+    {
+        if (quiz == null)
+        {
+            Console.WriteLine("Error: Quiz is null in EditQuiz method");
+            return;
+        }
+
+        Navigation.NavigateTo(AppRoutes.AdminQuizzesEditWithId(quiz.Id));
+    }
+
+    private void ViewQuiz(QuizViewModel quiz)
+    {
+        if (quiz == null)
+        {
+            Console.WriteLine("Error: Quiz is null in ViewQuiz method");
+            return;
+        }
+
+        viewingQuiz = quiz;
+        showViewModal = true;
+    }
+
+    private async Task ToggleQuizStatus(QuizViewModel quiz)
+    {
+        if (quiz == null)
+        {
+            Console.WriteLine("Error: Quiz is null in ToggleQuizStatus method");
+            return;
+        }
+
+        try
+        {
+            quiz.IsActive = !quiz.IsActive;
+            
+            // Convert QuizViewModel to QuizRequest for the service
+            var quizRequest = new QuizRequest
+            {
+                Id = quiz.Id,
+                Title = quiz.Title,
+                Description = quiz.Description,
+                Category = quiz.Category,
+                TimeLimitMinutes = quiz.TimeLimitMinutes,
+                IsActive = quiz.IsActive,
+                Questions = quiz.Questions.Select(q => new QuestionRequest
+                {
+                    Id = q.Id,
+                    QuestionText = q.QuestionText,
+                    Type = q.Type,
+                    Options = q.Options,
+                    CorrectAnswer = q.CorrectAnswer
+                }).ToList()
+            };
+            
+            await QuizService.UpdateQuizAsync(quizRequest);
+            await RefreshQuizzes();
+            
+            var status = quiz.IsActive ? "activated" : "deactivated";
+            ToastService.ShowToast(ToastType.Success, $"Quiz '{quiz.Title}' has been {status} successfully!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error toggling quiz status: {ex.Message}");
+            ToastService.ShowToast(ToastType.Error, $"Error updating quiz status: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteQuiz(QuizViewModel quiz)
+    {
+        if (quiz == null)
+        {
+            Console.WriteLine("Error: Quiz is null in DeleteQuiz method");
+            return;
+        }
+
+        try
+        {
+            await QuizService.DeleteQuizAsync(quiz.Id);
+            await RefreshQuizzes();
+            ToastService.ShowToast(ToastType.Success, $"Quiz '{quiz.Title}' has been deleted successfully!");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting quiz: {ex.Message}");
+            ToastService.ShowToast(ToastType.Error, $"Error deleting quiz: {ex.Message}");
+        }
+    }
+
+    private void CloseViewModal()
+    {
+        showViewModal = false;
+        viewingQuiz = null;
+    }
+}

@@ -1,16 +1,111 @@
 ﻿using BrainBuzz.web.Models.DbTable;
+using BrainBuzz.web.Constants;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
+using Serilog;
 using System;
 using System.Linq;
+
 namespace BrainBuzz.web.Data;
 
 public static class DataSeeder
 {
-    public static void Seed(ApplicationDbContext context)
+    public static async Task SeedAsync(
+        ApplicationDbContext context, 
+        RoleManager<IdentityRole> roleManager, 
+        UserManager<IdentityUser> userManager,
+        IConfiguration configuration)
     {
-        context.Database.Migrate(); // Apply migrations
-
-        if (!context.Quizzes.Any())
+        try
+        {
+            await context.Database.MigrateAsync();
+            await SeedRolesAsync(roleManager);
+            await SeedAdminUserAsync(userManager, configuration);
+            await SeedQuizzesAsync(context);
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error during database seeding");
+            throw;
+        }
+    }
+    
+    private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+    {
+        var rolesList = string.Join(", ", AppRoles.AllRoles);
+        foreach (var roleName in AppRoles.AllRoles)
+        {
+            var roleExists = await roleManager.RoleExistsAsync(roleName);
+            if (!roleExists)
+            {
+                var result = await roleManager.CreateAsync(new IdentityRole(roleName));
+                if (result.Succeeded)
+                {
+                    Log.Information("Role '{RoleName}' created successfully", roleName);
+                }
+                else
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                }
+            }
+            else
+            {
+                Log.Information("Role '{RoleName}' already exists", roleName);
+            }
+        }
+    }
+    
+    private static async Task SeedAdminUserAsync(UserManager<IdentityUser> userManager, IConfiguration configuration)
+    {
+        var adminEmail = configuration["AdminUser:Email"] ?? "admin@brainbuzz.com";
+        var adminUsername = configuration["AdminUser:Username"] ?? "admin";
+        var adminPassword = configuration["AdminUser:Password"] ?? "Admin@123";
+        
+        if (string.IsNullOrEmpty(adminPassword) || adminPassword == "Admin@123")
+        {
+            Log.Warning("SECURITY WARNING: Using default admin password. Please set AdminUser:Password in environment variables or secrets!");
+        }
+        
+        var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
+        if (existingAdmin == null)
+        {
+            var adminUser = new IdentityUser
+            {
+                UserName = adminUsername,
+                Email = adminEmail,
+                EmailConfirmed = true
+            };
+            
+            var result = await userManager.CreateAsync(adminUser, adminPassword);
+            
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, AppRoles.Admin);
+                Log.Information("Admin user '{Username}' created successfully with email '{Email}'", adminUsername, adminEmail);
+            }
+            else
+            {
+                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                Log.Error("Failed to create admin user: {Errors}", errors);
+            }
+        }
+        else
+        {
+            Log.Information("Admin user already exists with email '{Email}'", adminEmail);
+            
+            if (!await userManager.IsInRoleAsync(existingAdmin, AppRoles.Admin))
+            {
+                await userManager.AddToRoleAsync(existingAdmin, AppRoles.Admin);
+                Log.Information("Admin role assigned to existing user '{Email}'", adminEmail);
+            }
+        }
+    }
+    
+    private static async Task SeedQuizzesAsync(ApplicationDbContext context)
+    {
+        var existingQuizCount = await context.Quizzes.CountAsync();
+        if (existingQuizCount == 0)
         {
             var quizzes = new List<Quizzes>
             {
@@ -56,9 +151,8 @@ public static class DataSeeder
                 }
             };
 
-            context.Quizzes.AddRange(quizzes);
-            context.SaveChanges();
-
+            await context.Quizzes.AddRangeAsync(quizzes);
+            await context.SaveChangesAsync();
             var questions = new List<Questions>
             {
                 // HTML-CSS Questions
@@ -90,10 +184,12 @@ public static class DataSeeder
                 new Questions { QuizId = quizzes[4].QuizId, QuestionText = "What is the correct way to declare a string variable in C#?", OptionA = "string name = \"Hello\";", OptionB = "String name = \"Hello\";", OptionC = "var name = \"Hello\";", OptionD = "All of the above", CorrectOption = "D" }
             };
 
-            context.Questions.AddRange(questions);
-            context.SaveChanges();
+            await context.Questions.AddRangeAsync(questions);
+            await context.SaveChangesAsync();
+        }
+        else
+        {
+            Log.Information("Quizzes already exist in database, skipping seed");
         }
     }
 }
-
-

@@ -821,10 +821,35 @@ a:hover {
 }
 
 .form-error {
-     display: block;
-     margin-top: var(--spacing-2);
-     font-size: var(--font-size-sm);
-     color: var(--color-error);
+    display: block;
+    margin-top: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--color-error);
+}
+
+/* Validation message styling */
+.validation-message {
+    display: block;
+    margin-top: var(--spacing-2);
+    font-size: var(--font-size-sm);
+    color: var(--color-error);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Ensure validation messages are red */
+.validation-message.invalid-feedback {
+    color: var(--color-error) !important;
+}
+
+/* Input validation states */
+.form-control.is-invalid {
+    border-color: var(--color-error) !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.form-control.is-invalid:focus {
+    border-color: var(--color-error) !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
 }
 
 .form-help {
@@ -1395,7 +1420,28 @@ a:hover {
 }
 
 .auth-form {
-     margin-bottom: var(--spacing-6);
+    margin-bottom: var(--spacing-6);
+}
+
+/* Login form specific styling */
+.login-form-check {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+}
+
+.login-form-check:hover {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.login-form-check:focus {
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .auth-footer {

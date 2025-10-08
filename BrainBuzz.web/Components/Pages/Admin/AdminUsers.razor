@@ -1,0 +1,479 @@
+@page "/admin/users"
+@using BrainBuzz.web.Constants
+@using Microsoft.AspNetCore.Identity
+@using BrainBuzz.web.Components.Common
+@inject UserManager<IdentityUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager Navigation
+@layout AdminLayout
+
+<PageTitle>User Management - BrainBuzz Admin</PageTitle>
+
+<div class="admin-page-header">
+    <h1 class="admin-page-title">User Management</h1>
+    <p class="admin-page-subtitle">Manage users, roles, and permissions</p>
+</div>
+
+@if (isLoading)
+{
+    <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Table" />
+}
+else
+{
+    <!-- User Statistics -->
+    <div class="admin-stats-grid" style="margin-bottom: 2rem;">
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon primary">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>@totalUsers</h3>
+                <p>Total Users</p>
+            </div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon success">
+                <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>@adminUsers</h3>
+                <p>Administrators</p>
+            </div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon info">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>@customerUsers</h3>
+                <p>Customers</p>
+            </div>
+        </div>
+        <div class="admin-stat-card">
+            <div class="admin-stat-icon warning">
+                <i class="fas fa-user-lock"></i>
+            </div>
+            <div class="admin-stat-content">
+                <h3>@lockedUsers</h3>
+                <p>Locked Users</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="admin-toolbar">
+        <div class="admin-search">
+            <input type="text" @bind="searchTerm" @onkeyup="OnSearchChanged" placeholder="Search users..." class="admin-search-input" />
+            <i class="fas fa-search admin-search-icon"></i>
+        </div>
+        <div class="admin-filters">
+            <select @bind="selectedRole" @bind:after="OnRoleFilterChanged" class="admin-filter-select">
+                <option value="">All Roles</option>
+                <option value="Admin">Administrators</option>
+                <option value="Customer">Customers</option>
+                <option value="NoRole">No Role</option>
+            </select>
+        </div>
+        <button class="btn btn-primary" @onclick="RefreshUsers">
+            <i class="fas fa-sync-alt"></i>
+            Refresh
+        </button>
+    </div>
+
+    <!-- Users Table -->
+    <div class="admin-table-container">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in filteredUsers)
+                {
+                    var userRoles = GetUserRoles(user);
+                    var isLocked = user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow;
+                    
+                    <tr>
+                        <td>
+                            <div class="user-info">
+                                <div class="user-avatar @(userRoles.Contains("Admin") ? "admin" : "customer")">
+                                    @(user.UserName?.Substring(0, 1).ToUpper() ?? "?")
+                                </div>
+                                <div class="user-details">
+                                    <strong>@user.UserName</strong>
+                                    <span class="user-id">ID: @user.Id.Substring(0, 8)...</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@user.Email</td>
+                        <td>
+                            <div class="role-badges">
+                                @if (userRoles.Any())
+                                {
+                                    @foreach (var role in userRoles)
+                                    {
+                                        <span class="role-badge @(role.ToLower())">@role</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <span class="role-badge no-role">No Role</span>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <span class="status-badge @(isLocked ? "locked" : "active")">
+                                @(isLocked ? "Locked" : "Active")
+                            </span>
+                        </td>
+                        <td>@user.LockoutEnd?.ToString("MMM dd, yyyy")</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-sm btn-outline" @onclick="() => EditUser(user)" title="Edit User">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline" @onclick="() => ManageRoles(user)" title="Manage Roles">
+                                    <i class="fas fa-user-cog"></i>
+                                </button>
+                                @if (isLocked)
+                                {
+                                    <button class="btn btn-sm btn-success" @onclick="() => UnlockUser(user)" title="Unlock User">
+                                        <i class="fas fa-unlock"></i>
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-warning" @onclick="() => LockUser(user)" title="Lock User">
+                                        <i class="fas fa-lock"></i>
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (!filteredUsers.Any())
+    {
+        <div class="admin-empty-state">
+            <i class="fas fa-users"></i>
+            <h3>No users found</h3>
+            <p>@(string.IsNullOrEmpty(searchTerm) ? "No users in the system." : "No users match your search criteria.")</p>
+        </div>
+    }
+}
+
+<!-- User Edit Modal -->
+@if (showEditModal)
+{
+    <div class="modal-overlay" @onclick="CloseEditModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>Edit User: @editingUser?.UserName</h3>
+                <button class="modal-close" @onclick="CloseEditModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if (editingUser != null)
+                {
+                    <div class="form-group">
+                        <label>Username</label>
+                        <input type="text" @bind="editingUser.UserName" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" @bind="editingUser.Email" class="form-control" />
+                    </div>
+                    <div class="form-group">
+                        <label>Email Confirmed</label>
+                        <input type="checkbox" @bind="editingUser.EmailConfirmed" />
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseEditModal">Cancel</button>
+                <button class="btn btn-primary" @onclick="SaveUser">Save Changes</button>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Role Management Modal -->
+@if (showRoleModal)
+{
+    <div class="modal-overlay" @onclick="CloseRoleModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h3>Manage Roles: @roleEditingUser?.UserName</h3>
+                <button class="modal-close" @onclick="CloseRoleModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                @if (roleEditingUser != null)
+                {
+                    <div class="role-management">
+                        <h4>Current Roles:</h4>
+                        <div class="current-roles">
+                            @foreach (var role in availableRoles)
+                            {
+                                var hasRole = userRoleAssignments.Contains(role.Name ?? "");
+                                <div class="role-item">
+                                    <input type="checkbox" 
+                                           checked="@hasRole"
+                                           @onchange="@((e) => ToggleRole(role.Name ?? "", (bool)e.Value!))" />
+                                    <label>@role.Name</label>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="CloseRoleModal">Cancel</button>
+                <button class="btn btn-primary" @onclick="SaveUserRoles">Save Roles</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private List<IdentityUser> allUsers = new();
+    private List<IdentityUser> filteredUsers = new();
+    private List<IdentityRole> availableRoles = new();
+    private Dictionary<string, List<string>> userRolesCache = new();
+    
+    private string searchTerm = "";
+    private string selectedRole = "";
+    
+    private int totalUsers = 0;
+    private int adminUsers = 0;
+    private int customerUsers = 0;
+    private int lockedUsers = 0;
+    
+    // Modal states
+    private bool showEditModal = false;
+    private bool showRoleModal = false;
+    private IdentityUser? editingUser = null;
+    private IdentityUser? roleEditingUser = null;
+    private List<string> userRoleAssignments = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        await LoadUsers();
+        isLoading = false;
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            allUsers = UserManager.Users.ToList();
+            availableRoles = RoleManager.Roles.ToList();
+            
+            // Load user roles
+            userRolesCache.Clear();
+            foreach (var user in allUsers)
+            {
+                var roles = await UserManager.GetRolesAsync(user);
+                userRolesCache[user.Id] = roles.ToList();
+            }
+            
+            CalculateStatistics();
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+            Console.WriteLine($"Error loading users: {ex.Message}");
+        }
+    }
+
+    private void CalculateStatistics()
+    {
+        totalUsers = allUsers.Count;
+        adminUsers = userRolesCache.Values.Count(roles => roles.Contains("Admin"));
+        customerUsers = userRolesCache.Values.Count(roles => roles.Contains("Customer"));
+        lockedUsers = allUsers.Count(u => u.LockoutEnd.HasValue && u.LockoutEnd > DateTimeOffset.UtcNow);
+    }
+
+    private void ApplyFilters()
+    {
+        var query = allUsers.AsEnumerable();
+
+        // Apply search filter
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            query = query.Where(u => 
+                (u.UserName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (u.Email?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false));
+        }
+
+        // Apply role filter
+        if (!string.IsNullOrEmpty(selectedRole))
+        {
+            if (selectedRole == "NoRole")
+            {
+                query = query.Where(u => !userRolesCache.ContainsKey(u.Id) || !userRolesCache[u.Id].Any());
+            }
+            else
+            {
+                query = query.Where(u => 
+                    userRolesCache.ContainsKey(u.Id) && userRolesCache[u.Id].Contains(selectedRole));
+            }
+        }
+
+        filteredUsers = query.ToList();
+    }
+
+    private List<string> GetUserRoles(IdentityUser user)
+    {
+        return userRolesCache.ContainsKey(user.Id) ? userRolesCache[user.Id] : new List<string>();
+    }
+
+    private async Task OnSearchChanged()
+    {
+        ApplyFilters();
+        await Task.CompletedTask;
+    }
+
+    private async Task OnRoleFilterChanged()
+    {
+        ApplyFilters();
+        await Task.CompletedTask;
+    }
+
+    private async Task RefreshUsers()
+    {
+        isLoading = true;
+        StateHasChanged();
+        await LoadUsers();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private void EditUser(IdentityUser user)
+    {
+        editingUser = user;
+        showEditModal = true;
+    }
+
+    private void CloseEditModal()
+    {
+        showEditModal = false;
+        editingUser = null;
+    }
+
+    private async Task SaveUser()
+    {
+        if (editingUser != null)
+        {
+            try
+            {
+                var result = await UserManager.UpdateAsync(editingUser);
+                if (result.Succeeded)
+                {
+                    await RefreshUsers();
+                    CloseEditModal();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving user: {ex.Message}");
+            }
+        }
+    }
+
+    private void ManageRoles(IdentityUser user)
+    {
+        roleEditingUser = user;
+        userRoleAssignments = GetUserRoles(user).ToList();
+        showRoleModal = true;
+    }
+
+    private void CloseRoleModal()
+    {
+        showRoleModal = false;
+        roleEditingUser = null;
+        userRoleAssignments.Clear();
+    }
+
+    private void ToggleRole(string roleName, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!userRoleAssignments.Contains(roleName))
+            {
+                userRoleAssignments.Add(roleName);
+            }
+        }
+        else
+        {
+            userRoleAssignments.Remove(roleName);
+        }
+    }
+
+    private async Task SaveUserRoles()
+    {
+        if (roleEditingUser != null)
+        {
+            try
+            {
+                var currentRoles = await UserManager.GetRolesAsync(roleEditingUser);
+                
+                // Remove all current roles
+                await UserManager.RemoveFromRolesAsync(roleEditingUser, currentRoles);
+                
+                // Add selected roles
+                if (userRoleAssignments.Any())
+                {
+                    await UserManager.AddToRolesAsync(roleEditingUser, userRoleAssignments);
+                }
+                
+                await RefreshUsers();
+                CloseRoleModal();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving user roles: {ex.Message}");
+            }
+        }
+    }
+
+    private async Task LockUser(IdentityUser user)
+    {
+        try
+        {
+            await UserManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow.AddDays(30));
+            await RefreshUsers();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error locking user: {ex.Message}");
+        }
+    }
+
+    private async Task UnlockUser(IdentityUser user)
+    {
+        try
+        {
+            await UserManager.SetLockoutEndDateAsync(user, null);
+            await RefreshUsers();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error unlocking user: {ex.Message}");
+        }
+    }
+}

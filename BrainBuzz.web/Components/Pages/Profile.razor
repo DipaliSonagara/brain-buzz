@@ -10,7 +10,6 @@
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@inject ILoadingService LoadingService
 
 <PageTitle>Profile - BrainBuzz</PageTitle>
 
@@ -23,12 +22,9 @@
     </div>
 
     <div class="dashboard-content">
-        @if (currentUser == "Loading...")
+        @if (isLoading)
         {
-            <LoadingCard Title="Loading Profile" 
-                         Message="Fetching your profile information and statistics..." 
-                         SpinnerVariant="LoadingSpinner.SpinnerVariant.Circle" 
-                         SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
+            <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Card" />
         }
         else
         {
@@ -346,6 +342,7 @@
 </div>
 
 @code {
+    private bool isLoading = true;
     private string currentUser = "";
     private int totalQuizzesTaken = 0;
     private int averageScore = 0;
@@ -357,7 +354,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        currentUser = "Loading...";
+        isLoading = true;
+        currentUser = "";
         totalQuizzesTaken = 0;
         averageScore = 0;
         recentResults = new List<QuizResultViewModel>();
@@ -367,6 +365,7 @@
     {
         if (firstRender)
         {
+            await Task.Delay(500);
             await LoadProfileData();
         }
     }
@@ -429,6 +428,7 @@
             recentResults = new List<QuizResultViewModel>();
         }
         
+        isLoading = false;
         StateHasChanged();
     }
 }

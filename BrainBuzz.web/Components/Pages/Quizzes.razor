@@ -4,7 +4,6 @@
 @inject IQuizService QuizService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@inject ILoadingService LoadingService
 
 <PageTitle>Quizzes - BrainBuzz</PageTitle>
 
@@ -17,12 +16,9 @@
           </div>
 
           <div class="space-y-6">
-               @if (quizzes == null)
+               @if (isLoading)
                {
-                    <LoadingCard Title="Loading Quizzes" 
-                                 Message="Please wait while we fetch the available quizzes for you." 
-                                 SpinnerVariant="LoadingSpinner.SpinnerVariant.Rings" 
-                                 SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
+                    <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.List" Count="6" />
                }
                else if (!quizzes.Any())
                {
@@ -232,7 +228,8 @@
 </div>
 
 @code {
-     private List<QuizViewModel>? quizzes;
+     private bool isLoading = true;
+     private List<QuizViewModel> quizzes = new();
      private List<QuizViewModel> filteredQuizzes = new();
      private string searchTerm = "";
      private string selectedCategory = "";
@@ -247,26 +244,27 @@
 
      private async Task LoadQuizzes()
      {
+          await Task.Delay(500);
+          
           try
           {
-               quizzes = await QuizService.GetAllQuizzesAsync();
-               filteredQuizzes = quizzes?.ToList() ?? new List<QuizViewModel>();
+               var result = await QuizService.GetAllQuizzesAsync();
+               quizzes = result?.ToList() ?? new List<QuizViewModel>();
+               filteredQuizzes = quizzes.ToList();
           }
           catch (Exception)
           {
                quizzes = new List<QuizViewModel>();
                filteredQuizzes = new List<QuizViewModel>();
           }
+          finally
+          {
+               isLoading = false;
+          }
      }
 
      private void FilterQuizzes()
      {
-          if (quizzes == null)
-          {
-               filteredQuizzes = new List<QuizViewModel>();
-               return;
-          }
-
           filteredQuizzes = quizzes.Where(quiz =>
               (string.IsNullOrEmpty(searchTerm) ||
                quiz.QuizName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||

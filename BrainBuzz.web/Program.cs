@@ -3,6 +3,7 @@ using BrainBuzz.web.Data;
 using BrainBuzz.web.Services;
 using BrainBuzz.web.Services.Interface;
 using BrainBuzz.web.Configuration;
+using BrainBuzz.web.Middleware;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Serilog;
@@ -87,6 +88,7 @@ try
     builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
     builder.Services.AddSingleton<SessionService>();
     builder.Services.AddSingleton<ILoadingService, LoadingService>();
+    builder.Services.AddScoped<ToastService>();
 
     var app = builder.Build();
 
@@ -100,6 +102,9 @@ try
 
     // Add Serilog request logging
     app.UseSerilogRequestLogging();
+
+    // Add global error handling middleware
+    app.UseGlobalErrorHandling();
 
     app.UseStaticFiles();
     app.UseAntiforgery();

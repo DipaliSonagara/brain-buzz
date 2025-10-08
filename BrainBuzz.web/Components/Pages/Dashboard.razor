@@ -5,12 +5,17 @@
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@inject ILoadingService LoadingService
 
 <PageTitle>Dashboard - BrainBuzz</PageTitle>
 
 <!-- Clean Dashboard Layout -->
 <div class="content-container">
+    @if (isLoading)
+    {
+        <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Card" />
+    }
+    else
+    {
     <!-- Welcome Hero Section -->
     <section class="welcome-hero">
         <div class="welcome-content">
@@ -260,9 +265,11 @@
             </div>
         </div>
     </section>
+    }
 </div>
 
 @code {
+    private bool isLoading = true;
     private string currentUser = "";
     private int totalQuizzes = 0;
     private int completedQuizzes = 0;
@@ -273,6 +280,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        isLoading = true;
         currentUser = "";
         totalQuizzes = 0;
         completedQuizzes = 0;
@@ -280,13 +288,13 @@
         bestScore = 0;
         weeklyProgress = 0;
         recentResults = new List<QuizResultViewModel>();
-        LoadingService.StartLoading("Loading Dashboard...");
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
+            await Task.Delay(500);
             await LoadDashboardData();
         }
     }
@@ -351,7 +359,8 @@
             weeklyProgress = 0;
             recentResults = new List<QuizResultViewModel>();
         }
-        LoadingService.StopLoading();
+        
+        isLoading = false;
         StateHasChanged();
     }
 }

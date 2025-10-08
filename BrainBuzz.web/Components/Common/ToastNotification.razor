@@ -1,0 +1,97 @@
+@using BrainBuzz.web.Services
+@inject ToastService ToastService
+@inject IJSRuntime JSRuntime
+
+<div class="toast-container">
+    @foreach (var toast in _toasts.Where(t => t.IsVisible))
+    {
+        <div class="toast @GetToastClass(toast.Type)" role="alert" aria-live="polite">
+            <div class="toast-header">
+                <div class="toast-icon">
+                    @GetToastIcon(toast.Type)
+                </div>
+                <div class="toast-content">
+                    @if (!string.IsNullOrEmpty(toast.Title))
+                    {
+                        <div class="toast-title">@toast.Title</div>
+                    }
+                    <div class="toast-message">@toast.Message</div>
+                </div>
+                <button class="toast-close" @onclick="() => HideToast(toast.Id)" aria-label="Close notification">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ToastMessage> _toasts = new();
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShowToast += ShowToast;
+    }
+
+    private void ShowToast(ToastMessage toast)
+    {
+        _toasts.Add(toast);
+        StateHasChanged();
+
+        // Auto-hide after 5 seconds
+        _ = Task.Delay(5000).ContinueWith(_ =>
+        {
+            InvokeAsync(() => HideToast(toast.Id));
+        });
+    }
+
+    private void HideToast(string toastId)
+    {
+        var toast = _toasts.FirstOrDefault(t => t.Id == toastId);
+        if (toast != null)
+        {
+            toast.IsVisible = false;
+            StateHasChanged();
+
+            // Remove from list after animation
+            _ = Task.Delay(300).ContinueWith(_ =>
+            {
+                InvokeAsync(() =>
+                {
+                    _toasts.RemoveAll(t => t.Id == toastId);
+                    StateHasChanged();
+                });
+            });
+        }
+    }
+
+    private string GetToastClass(ToastType type)
+    {
+        return type switch
+        {
+            ToastType.Success => "toast-success",
+            ToastType.Error => "toast-error",
+            ToastType.Warning => "toast-warning",
+            ToastType.Info => "toast-info",
+            _ => "toast-info"
+        };
+    }
+
+    private string GetToastIcon(ToastType type)
+    {
+        return type switch
+        {
+            ToastType.Success => "fas fa-check-circle",
+            ToastType.Error => "fas fa-exclamation-circle",
+            ToastType.Warning => "fas fa-exclamation-triangle",
+            ToastType.Info => "fas fa-info-circle",
+            _ => "fas fa-info-circle"
+        };
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnShowToast -= ShowToast;
+    }
+}
+

@@ -5,7 +5,6 @@
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@inject ILoadingService LoadingService
 
 <PageTitle>Quiz - @quiz?.QuizName</PageTitle>
 
@@ -50,12 +49,9 @@
     <div class="quiz-content">
         <ErrorAlert Message="@errorMessage" Type="@errorType" OnDismiss="ClearError" />
         
-        @if (questions == null)
+        @if (isLoading)
         {
-            <LoadingCard Title="Loading Quiz Questions" 
-                         Message="Preparing your quiz questions. Please wait..." 
-                         SpinnerVariant="LoadingSpinner.SpinnerVariant.Dots" 
-                         SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
+            <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Quiz" />
         }
         else if (showResults)
         {
@@ -230,6 +226,7 @@ else
 
 @code {
     [Parameter] public int quizId { get; set; }
+    private bool isLoading = true;
     private QuizViewModel? quiz;
     private List<QuestionViewModel> questions = new();
     private List<string> userAnswers = new();
@@ -245,22 +242,27 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await Task.Delay(500);
+        
         try
         {
             quiz = await QuizService.GetQuizByIdAsync(quizId);
             if (quiz == null)
             {
                 ShowError("Quiz not found. Please check the quiz ID and try again.", ErrorAlert.AlertType.Error);
+                isLoading = false;
                 return;
             }
 
-            questions = await QuizService.GetQuizQuestionsAsync(quizId);
-            if (questions == null || !questions.Any())
+            var loadedQuestions = await QuizService.GetQuizQuestionsAsync(quizId);
+            if (loadedQuestions == null || !loadedQuestions.Any())
             {
                 ShowError("No questions found for this quiz. Please try another quiz.", ErrorAlert.AlertType.Warning);
+                isLoading = false;
                 return;
             }
 
+            questions = loadedQuestions;
             userAnswers = new List<string>(new string[questions.Count]);
             
             // Initialize timer
@@ -269,10 +271,13 @@ else
             
             // Set default username (will be updated in OnAfterRenderAsync)
             currentUsername = "Loading...";
+            
+            isLoading = false;
         }
         catch (Exception ex)
         {
             ShowError($"An error occurred while loading the quiz: {ex.Message}", ErrorAlert.AlertType.Error);
+            isLoading = false;
         }
     }
 

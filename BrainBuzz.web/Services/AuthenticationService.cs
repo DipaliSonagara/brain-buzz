@@ -5,6 +5,7 @@ using Microsoft.JSInterop;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using BrainBuzz.web.Models.Request;
+using System.ComponentModel.DataAnnotations;
 
 namespace BrainBuzz.web.Services
 {
@@ -97,6 +98,7 @@ namespace BrainBuzz.web.Services
                     var sessionId = await CreateSessionAsync(user.Id, user.UserName ?? string.Empty);
                     
                     _loadingService.StopLoading();
+                    
                     return new AuthenticationResult
                     {
                         IsAuthenticated = true,
@@ -147,15 +149,34 @@ namespace BrainBuzz.web.Services
             {
                 _logger.LogInformation("Registration attempt for user: {Username}", registerRequest.Username);
 
-                // Validate required fields
-                if (string.IsNullOrWhiteSpace(registerRequest.Username) ||
-                    string.IsNullOrWhiteSpace(registerRequest.Email) ||
-                    string.IsNullOrWhiteSpace(registerRequest.Password))
+                // Validate input using custom validation
+                var usernameValidation = ValidationService.ValidateUsername(registerRequest.Username);
+                if (usernameValidation != ValidationResult.Success)
                 {
                     return new RegistrationResult
                     {
                         IsSuccess = false,
-                        ErrorMessage = "All fields are required"
+                        ErrorMessage = usernameValidation.ErrorMessage ?? "Invalid username"
+                    };
+                }
+
+                var emailValidation = ValidationService.ValidateEmail(registerRequest.Email);
+                if (emailValidation != ValidationResult.Success)
+                {
+                    return new RegistrationResult
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = emailValidation.ErrorMessage ?? "Invalid email"
+                    };
+                }
+
+                var passwordValidation = ValidationService.ValidatePasswordStrength(registerRequest.Password);
+                if (passwordValidation != ValidationResult.Success)
+                {
+                    return new RegistrationResult
+                    {
+                        IsSuccess = false,
+                        ErrorMessage = passwordValidation.ErrorMessage ?? "Invalid password"
                     };
                 }
 
@@ -195,11 +216,12 @@ namespace BrainBuzz.web.Services
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User registered successfully: {Username}", registerRequest.Username);
-                return new RegistrationResult
-                {
-                    IsSuccess = true,
-                    Message = "Registration successful"
-                };
+                    
+                    return new RegistrationResult
+                    {
+                        IsSuccess = true,
+                        Message = "Registration successful"
+                    };
                 }
                 else
                 {

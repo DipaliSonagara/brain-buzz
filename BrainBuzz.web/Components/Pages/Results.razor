@@ -10,7 +10,6 @@
 @inject SessionService SessionService
 @inject NavigationManager Navigation
 @inject IJSRuntime JSRuntime
-@inject ILoadingService LoadingService
 
 <PageTitle>Results - BrainBuzz</PageTitle>
 
@@ -116,12 +115,9 @@
                </div>
 
                <!-- Results List -->
-               @if (filteredResults == null)
+               @if (isLoading)
                {
-                    <LoadingCard Title="Loading Your Results" 
-                                 Message="Fetching your quiz results and performance data..." 
-                                 SpinnerVariant="LoadingSpinner.SpinnerVariant.Bars" 
-                                 SpinnerSize="LoadingSpinner.SpinnerSize.Large" />
+                    <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Table" Rows="5" Columns="4" />
                }
                else if (!filteredResults.Any())
                {
@@ -286,9 +282,10 @@
 </div>
 
 @code {
-     private List<QuizResultViewModel>? allResults;
+     private bool isLoading = true;
+     private List<QuizResultViewModel> allResults = new();
      private List<QuizResultViewModel> filteredResults = new();
-     private List<QuizViewModel>? availableQuizzes;
+     private List<QuizViewModel> availableQuizzes = new();
      private string searchTerm = "";
      private string selectedQuiz = "";
      private string sortBy = "date";
@@ -304,6 +301,7 @@
      protected override async Task OnInitializedAsync()
      {
           // Initialize with default values during prerendering
+          isLoading = true;
           totalQuizzes = 0;
           averageScore = 0;
           weeklyQuizzes = 0;
@@ -319,6 +317,8 @@
 
      private async Task LoadResults()
      {
+          await Task.Delay(500);
+          
           try
           {
                var sessionId = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "sessionId");
@@ -328,10 +328,13 @@
                     currentUser = SessionService.GetUsername(sessionId);
                }
 
-               allResults = await QuizService.GetUserQuizResultsAsync(currentUser);
-               availableQuizzes = await QuizService.GetAllQuizzesAsync();
+               var results = await QuizService.GetUserQuizResultsAsync(currentUser);
+               allResults = results?.ToList() ?? new List<QuizResultViewModel>();
+               
+               var quizzes = await QuizService.GetAllQuizzesAsync();
+               availableQuizzes = quizzes?.ToList() ?? new List<QuizViewModel>();
 
-               if (allResults?.Any() == true)
+               if (allResults.Any())
                {
                     totalQuizzes = allResults.Count;
                     averageScore = (int)allResults.Average(r => r.Percentage);
@@ -349,18 +352,15 @@
                availableQuizzes = new List<QuizViewModel>();
                filteredResults = new List<QuizResultViewModel>();
           }
-          
-          StateHasChanged();
+          finally
+          {
+               isLoading = false;
+               StateHasChanged();
+          }
      }
 
      private void FilterResults()
      {
-          if (allResults == null)
-          {
-               filteredResults = new List<QuizResultViewModel>();
-               return;
-          }
-
           var filtered = allResults.Where(result =>
               (string.IsNullOrEmpty(searchTerm) ||
                result.QuizName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&

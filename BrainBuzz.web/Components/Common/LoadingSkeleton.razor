@@ -1,0 +1,111 @@
+@using BrainBuzz.web.Services
+
+<div class="loading-skeleton @CssClass" style="min-height: 200px; display: block;">
+    @if (Type == SkeletonType.Card)
+    {
+        <div class="skeleton-card" style="min-height: 400px; background: #f0f0f0; padding: 20px; border-radius: 8px;">
+            <div class="skeleton-header" style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                <div class="skeleton-avatar" style="width: 60px; height: 60px; border-radius: 50%; background: #d0d0d0;"></div>
+                <div class="skeleton-text-group" style="flex: 1;">
+                    <div class="skeleton-line skeleton-title" style="height: 20px; background: #d0d0d0; border-radius: 4px; margin-bottom: 10px; width: 60%;"></div>
+                    <div class="skeleton-line skeleton-subtitle" style="height: 16px; background: #d0d0d0; border-radius: 4px; width: 40%;"></div>
+                </div>
+            </div>
+            <div class="skeleton-content" style="margin-bottom: 20px;">
+                <div class="skeleton-line" style="height: 14px; background: #d0d0d0; border-radius: 4px; margin-bottom: 10px;"></div>
+                <div class="skeleton-line" style="height: 14px; background: #d0d0d0; border-radius: 4px; margin-bottom: 10px;"></div>
+                <div class="skeleton-line skeleton-short" style="height: 14px; background: #d0d0d0; border-radius: 4px; width: 70%;"></div>
+            </div>
+            <div class="skeleton-footer" style="display: flex; gap: 10px;">
+                <div class="skeleton-button" style="height: 40px; width: 120px; background: #d0d0d0; border-radius: 4px;"></div>
+                <div class="skeleton-button" style="height: 40px; width: 120px; background: #d0d0d0; border-radius: 4px;"></div>
+            </div>
+        </div>
+    }
+    else if (Type == SkeletonType.List)
+    {
+        <div class="skeleton-list" style="display: flex; flex-direction: column; gap: 15px;">
+            @for (int i = 0; i < Count; i++)
+            {
+                <div class="skeleton-list-item" style="display: flex; align-items: center; gap: 15px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+                    <div class="skeleton-avatar" style="width: 50px; height: 50px; border-radius: 50%; background: #d0d0d0;"></div>
+                    <div class="skeleton-text-group" style="flex: 1;">
+                        <div class="skeleton-line" style="height: 16px; background: #d0d0d0; border-radius: 4px; margin-bottom: 8px;"></div>
+                        <div class="skeleton-line skeleton-short" style="height: 14px; background: #d0d0d0; border-radius: 4px; width: 70%;"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (Type == SkeletonType.Table)
+    {
+        <div class="skeleton-table" style="background: #f0f0f0; border-radius: 8px; overflow: hidden;">
+            <div class="skeleton-table-header" style="display: grid; grid-template-columns: repeat(@Columns, 1fr); gap: 15px; padding: 20px; background: #e0e0e0;">
+                @for (int i = 0; i < Columns; i++)
+                {
+                    <div class="skeleton-line" style="height: 16px; background: #d0d0d0; border-radius: 4px;"></div>
+                }
+            </div>
+            @for (int i = 0; i < Rows; i++)
+            {
+                <div class="skeleton-table-row" style="display: grid; grid-template-columns: repeat(@Columns, 1fr); gap: 15px; padding: 20px; border-top: 1px solid #e0e0e0;">
+                    @for (int j = 0; j < Columns; j++)
+                    {
+                        <div class="skeleton-line" style="height: 14px; background: #d0d0d0; border-radius: 4px;"></div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else if (Type == SkeletonType.Text)
+    {
+        <div class="skeleton-text">
+            @for (int i = 0; i < Lines; i++)
+            {
+                <div class="skeleton-line @(i == Lines - 1 ? "skeleton-short" : "")"></div>
+            }
+        </div>
+    }
+    else if (Type == SkeletonType.Quiz)
+    {
+        <div class="skeleton-quiz" style="background: #f0f0f0; border-radius: 8px; padding: 30px;">
+            <div class="skeleton-quiz-header" style="margin-bottom: 30px;">
+                <div class="skeleton-line skeleton-title" style="height: 24px; background: #d0d0d0; border-radius: 4px; margin-bottom: 10px; width: 60%;"></div>
+                <div class="skeleton-line skeleton-subtitle" style="height: 16px; background: #d0d0d0; border-radius: 4px; width: 40%;"></div>
+            </div>
+            <div class="skeleton-quiz-question" style="margin-bottom: 30px;">
+                <div class="skeleton-line" style="height: 16px; background: #d0d0d0; border-radius: 4px; margin-bottom: 10px;"></div>
+                <div class="skeleton-line" style="height: 16px; background: #d0d0d0; border-radius: 4px; margin-bottom: 10px;"></div>
+                <div class="skeleton-line skeleton-short" style="height: 16px; background: #d0d0d0; border-radius: 4px; width: 70%;"></div>
+            </div>
+            <div class="skeleton-quiz-options" style="display: flex; flex-direction: column; gap: 15px;">
+                @for (int i = 0; i < 4; i++)
+                {
+                    <div class="skeleton-option" style="display: flex; align-items: center; gap: 15px; padding: 15px; background: white; border-radius: 8px;">
+                        <div class="skeleton-radio" style="width: 20px; height: 20px; border-radius: 50%; background: #d0d0d0;"></div>
+                        <div class="skeleton-line" style="flex: 1; height: 16px; background: #d0d0d0; border-radius: 4px;"></div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public SkeletonType Type { get; set; } = SkeletonType.Card;
+    [Parameter] public string CssClass { get; set; } = string.Empty;
+    [Parameter] public int Count { get; set; } = 3;
+    [Parameter] public int Lines { get; set; } = 3;
+    [Parameter] public int Rows { get; set; } = 5;
+    [Parameter] public int Columns { get; set; } = 4;
+
+    public enum SkeletonType
+    {
+        Card,
+        List,
+        Table,
+        Text,
+        Quiz
+    }
+}
+

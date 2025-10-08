@@ -1,0 +1,136 @@
+@using BrainBuzz.web.Services.Interface
+@using BrainBuzz.web.Services
+@inject IAuthenticationService AuthService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+@implements IDisposable
+
+<!-- Mobile Menu Toggle -->
+<button class="mobile-menu-toggle" @onclick="ToggleMobileMenu">
+    <i class="fas fa-bars"></i>
+</button>
+
+<!-- Mobile Overlay -->
+@if (isMobileMenuOpen)
+{
+    <div class="mobile-overlay" @onclick="ToggleMobileMenu"></div>
+}
+
+<!-- Sidebar -->
+<aside class="sidebar @(isMobileMenuOpen ? "open" : "")">
+    <div class="sidebar-header">
+        <a href="/overview" class="sidebar-logo">
+            <img src="/logo/brain-buzz-logo.png" alt="BrainBuzz" />
+            <span class="sidebar-logo-text">BrainBuzz</span>
+        </a>
+    </div>
+    
+    <nav class="sidebar-nav">
+        <div class="sidebar-nav-item">
+            <a href="/overview" class="sidebar-nav-link @(IsActiveRoute("/overview") ? "active" : "")">
+                <i class="fas fa-home"></i>
+                <span>Overview</span>
+            </a>
+        </div>
+        <div class="sidebar-nav-item">
+            <a href="/quizzes" class="sidebar-nav-link @(IsActiveRoute("/quizzes") ? "active" : "")">
+                <i class="fas fa-question-circle"></i>
+                <span>Quizzes</span>
+            </a>
+        </div>
+        <div class="sidebar-nav-item">
+            <a href="/results" class="sidebar-nav-link @(IsActiveRoute("/results") ? "active" : "")">
+                <i class="fas fa-chart-bar"></i>
+                <span>Results</span>
+            </a>
+        </div>
+        <div class="sidebar-nav-item">
+            <a href="/profile" class="sidebar-nav-link @(IsActiveRoute("/profile") ? "active" : "")">
+                <i class="fas fa-user"></i>
+                <span>Profile</span>
+            </a>
+        </div>
+    </nav>
+    
+    <div class="sidebar-footer">
+        <div class="flex items-center gap-3 mb-4">
+            <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
+                <span class="text-white font-semibold text-sm">@(string.IsNullOrEmpty(currentUser) ? "U" : currentUser.Substring(0, 1).ToUpper())</span>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-gray-900">@currentUser</p>
+                <p class="text-xs text-gray-500">Online</p>
+            </div>
+        </div>
+        <button class="btn btn-outline w-full" @onclick="Logout">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </button>
+    </div>
+</aside>
+
+@code {
+    private string currentUser = "";
+    private bool isMobileMenuOpen = false;
+    private string currentPath = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        currentPath = Navigation.ToBaseRelativePath(Navigation.Uri);
+        
+        try
+        {
+            var authResult = await AuthService.CheckAuthenticationAsync();
+            
+            if (authResult.IsAuthenticated)
+            {
+                currentUser = authResult.Username;
+            }
+        }
+        catch (Exception)
+        {
+            currentUser = "User";
+        }
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentPath = Navigation.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    private void ToggleMobileMenu()
+    {
+        isMobileMenuOpen = !isMobileMenuOpen;
+        StateHasChanged();
+    }
+
+    private bool IsActiveRoute(string route)
+    {
+        var routePath = route.TrimStart('/');
+        if (routePath == "overview" && (currentPath == "" || currentPath == "overview"))
+            return true;
+            
+        return currentPath.StartsWith(routePath) && routePath != "";
+    }
+
+    private async Task Logout()
+    {
+        try
+        {
+            await AuthService.LogoutAsync();
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+        catch (Exception)
+        {
+            Navigation.NavigateTo("/", forceLoad: true);
+        }
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}
+

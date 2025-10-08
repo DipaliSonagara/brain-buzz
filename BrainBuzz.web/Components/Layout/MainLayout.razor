@@ -1,6 +1,17 @@
 ﻿@inherits LayoutComponentBase
 @using BrainBuzz.web.Components.Layout
+@using BrainBuzz.web.Components.Common
 
-<DashboardLayout>
-    @Body
-</DashboardLayout>
+<!-- Toast Notifications -->
+<ToastNotification />
+
+<div class="dashboard-layout">
+    <NavMenu />
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-wrapper">
+            @Body
+        </div>
+    </main>
+</div>

@@ -9,13 +9,12 @@
 <PageTitle>Dashboard - BrainBuzz</PageTitle>
 
 <!-- Clean Dashboard Layout -->
-<div class="content-container">
-    @if (isLoading)
-    {
-        <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Card" />
-    }
-    else
-    {
+@if (isLoading)
+{
+    <LoadingSkeleton Type="LoadingSkeleton.SkeletonType.Card" />
+}
+else
+{
     <!-- Welcome Hero Section -->
     <section class="welcome-hero">
         <div class="welcome-content">
@@ -265,8 +264,7 @@
             </div>
         </div>
     </section>
-    }
-</div>
+}
 
 @code {
     private bool isLoading = true;

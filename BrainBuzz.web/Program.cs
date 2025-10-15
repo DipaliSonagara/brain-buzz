@@ -37,23 +37,37 @@ try
     var databaseSettings = builder.Configuration.GetSection(DatabaseSettings.SectionName).Get<DatabaseSettings>() ?? new DatabaseSettings();
     var securitySettings = builder.Configuration.GetSection(SecuritySettings.SectionName).Get<SecuritySettings>() ?? new SecuritySettings();
 
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    {
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-                              string.Empty;
-        
-        options.UseSqlServer(connectionString, sqlOptions =>
-        {
-            sqlOptions.CommandTimeout(databaseSettings.CommandTimeout);
-        });
-        
-        if (databaseSettings.EnableSensitiveDataLogging)
-        {
-            options.EnableSensitiveDataLogging();
-        }
-    });
+     //builder.Services.AddDbContext<ApplicationDbContext>(options =>
+     //{
+     //    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+     //                          string.Empty;
 
-    builder.Services.AddDefaultIdentity<IdentityUser>(options => 
+     //    options.UseSqlServer(connectionString, sqlOptions =>
+     //    {
+     //        sqlOptions.CommandTimeout(databaseSettings.CommandTimeout);
+     //    });
+
+     //    if (databaseSettings.EnableSensitiveDataLogging)
+     //    {
+     //        options.EnableSensitiveDataLogging();
+     //    }
+     //});
+
+     builder.Services.AddDbContext<ApplicationDbContext>(options =>
+     {
+          var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                                 ?? "Data Source=appdata.db";
+
+          options.UseSqlite(connectionString);
+
+          if (databaseSettings.EnableSensitiveDataLogging)
+          {
+               options.EnableSensitiveDataLogging();
+          }
+     });
+
+
+     builder.Services.AddDefaultIdentity<IdentityUser>(options => 
     {
         options.Password.RequireDigit = false;
         options.Password.RequireLowercase = false;
